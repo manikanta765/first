@@ -1,0 +1,13 @@
+Features:--
+1. JShell
+2. JPMS(Java Platform Modular System)
+3. JLINK(Java Linker)
+4. HTTP/2 client
+5. Process API Updates
+6. Private methods inside interface
+7. try with resource enhancements
+8. Factory methods to create unmodifible collections
+9. Stream API enhancements
+10. <>(diamond) operator enhancements
+11. Safe Varags Annotation
+12. GIGC (Garbage 

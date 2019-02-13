@@ -1,0 +1,833 @@
+Spring Cloud:--
+--------------
+          Spring Cloud provides tools for developers to quickly build some of the common patterns in distributed systems.
+          e.g.(Configuration management,service discovery,circuit breakers,intelligent routing,micro-proxy,control bus,
+          one-time tokens,global locks,leadership election,distributed sessions,cluster state.)
+                    Using spring cloud developers can quickly stand up services and applications that implement those patterns,
+           They will work well in any distributed environment.
+                
+Distributed Environments:--
+----------------------------
+          A Distributed system is a network that consists of autonomous computers that are connected using a distribution middleware.
+ they help in sharing different resources and capabilities to provide users with a single and integrated  coherent network.        
+
+Advantages and Disadvantages in Distributed Systems:--
+-----------------------------------------
+
+Advantages:-
+----------
+1. Shareability
+2. Expandability
+3. Local Autonomy
+4. Improved performance
+5. Improved reliability and availability
+6. Potential cost reduces
+
+Dis-Advantages:--
+--------------
+1. Network reliance
+2. Complexities
+3. Security
+4. Multiple point of failure
+
+Spring Cloud Features:--
+------------------
+1. Distributed/Versioned configuration
+2. Service registration and discovery
+3. Routing
+4. Service to service calls
+5. Load Balancing
+6. Circuit breakers
+7. Global locks
+8. Distributed messaging
+
+Netflix Oss:--
+-------------
+    Netflix Oss stands for Netflix Open Source Software developed by Netflix Team.
+ Circuit Breaker:-
+ -------------
+ Circuit Breaker is a Desing pattern,it is used to detect the failures and encapsulates the logic of preventing a failure
+ from constantaly recurring,during maintenance.
+
+
+   1. spring boot application class
+   @EnableZuulProxy
+@SpringBootApplication
+@EnableDiscoveryClient
+public class ZuulApiGateWayApplication {
+
+	public static void main(String[] args) {
+		SpringApplication.run(ZuulApiGateWayApplication.class, args);
+	}
+
+}
+
+2.pom.xml
+
+	<dependencies>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-web</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.cloud</groupId>
+			<artifactId>spring-cloud-starter-netflix-zuul</artifactId>
+		</dependency>
+		
+		<dependency>
+			<groupId>org.springframework.cloud</groupId>
+			<artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.cloud</groupId>
+			<artifactId>spring-cloud-starter-netflix-eureka-server</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
+3. application.yml
+
+Zuul:-- 
+Add Zuul and eureka discovery
+server:
+  port: 6066
+
+
+spring: 
+    application: 
+     name: zuuldemo  
+
+zuul: 
+ routes: 
+  std: 
+    url: http://localhost:6067
+  links: 
+   path: /dynamicips/**
+   url: http://localhost:8088/
+   strip-prefix:  false
+  get: 
+   path: /hi/**
+   url: http://localhost:8088/
+   strip-prefix:  false
+  link1: 
+   path: /fetchingdevices/**
+   url: http://localhost:8088/
+   strip-prefix:  false
+  lect: 
+   url: http://localhost:6068
+   strip-prefix:  false
+ host:  
+   socket-timeout-millis: 600000
+  
+eureka: 
+  instance: 
+    preferIpAddress:  true
+  client: 
+      registerWithEureka: true
+      fetchRegistry:  true
+      service-url:
+              defaultzone:  http://localhost:8761/eureka/  
+    
+      Spring boot H2 database:--
+      ----------------------
+1. application.properties:
+    
+spring.h2.console.enabled=true
+server.port=8086
+spring.h2.console.path=/h2
+
+spring.jpa.database-platform=org.hibernate.dialect.H2Dialect
+spring.datasource.url=jdbc:h2:~/testdb;DB_CLOSE_ON_EXIT=FALSE
+spring.datasource.username=sa
+spring.datasource.password=admin
+spring.datasource.driver-class-name=org.h2.Driver
+spring.jpa.hibernate.ddl-auto=update
+spring.datasource.platform=h2
+    
+2. pom.xml
+
+<dependencies>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-data-jpa</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-web</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>com.h2database</groupId>
+			<artifactId>h2</artifactId>
+			<scope>runtime</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+		
+		<dependency>
+			<groupId>org.apache.tomcat.embed</groupId>
+			<artifactId>tomcat-embed-jasper</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>javax.servlet</groupId>
+			<artifactId>jstl</artifactId>
+		</dependency>
+	</dependencies>
+      
+3. controller
+
+package com.example.demo;
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.example.demo.entites.Employee;
+import com.example.demo.service.EmployeeService;
+
+@RestController
+public class DemoController {
+
+	@Autowired
+	private JdbcTemplate jdbcTemplate;
+	
+	@Autowired
+	private EmployeeService employeeService;
+	
+	@RequestMapping(value="/createTable",method=RequestMethod.GET)
+	public void createTable(){
+		
+		try{
+			jdbcTemplate.execute("create table customers(id number(10),name varchar2(255),age varchar2(22))");
+			
+		}catch(Exception e){
+			e.printStackTrace();
+		}
+	}
+	
+	@RequestMapping(value="/putData",method=RequestMethod.GET)
+	public void putData(){
+		
+		try{
+			jdbcTemplate.execute("insert into customers(id,name,age) values(2,'raju',35)");
+			
+		}catch(Exception e){
+			e.printStackTrace();
+		}
+	}
+	
+	@RequestMapping(value="/employee",method=RequestMethod.GET)
+	public ResponseEntity<List<Employee>> employees(){
+		List<Employee> employees = employeeService.getEmployees();
+		return new ResponseEntity<>(employees,HttpStatus.OK);
+	}
+}
+
+4. entites
+package com.example.demo.entites;
+
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+
+@Entity
+public class Employee {
+
+	@Id
+	@GeneratedValue(strategy=GenerationType.AUTO)
+	private long id;
+	private String name;
+	
+	
+	public long getId() {
+		return id;
+	}
+	public void setId(long id) {
+		this.id = id;
+	}
+	public String getName() {
+		return name;
+	}
+	public void setName(String name) {
+		this.name = name;
+	}
+	
+	
+}
+
+5. repository
+
+package com.example.demo.repository;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import com.example.demo.entites.Employee;
+
+
+public interface EmployeeRepository extends JpaRepository<Employee,Long>{
+
+}
+
+6. employee service
+package com.example.demo.service;
+
+import java.util.List;
+
+import com.example.demo.entites.Employee;
+
+public interface EmployeeService {
+
+	public List<Employee> getEmployees();
+}
+
+7. employee service impl
+package com.example.demo.impl;
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.example.demo.entites.Employee;
+import com.example.demo.repository.EmployeeRepository;
+import com.example.demo.service.EmployeeService;
+
+@Service
+public class EmployeeServiceImpl implements EmployeeService{
+
+	@Autowired
+	private EmployeeRepository employeeRepository;
+	
+	@Override
+	public List<Employee> getEmployees() {
+		return employeeRepository.findAll();
+	}
+
+}
+8. bootapplication
+package com.example.demo;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
+
+@SpringBootApplication
+@EnableJpaRepositories
+public class SpringbootJpaApplication {
+
+	public static void main(String[] args) {
+		SpringApplication.run(SpringbootJpaApplication.class, args);
+	}
+}
+
+Spring boot task scheduler example:--
+1. Spring Boot provides a simple and easy way to develop and run a Task scheduler without using any xml and bean configurations.
+2. Simply add the annotation @Scheduled on the task scheduler method with required interval time.
+
+fixedDelay: Run tasks with a fixed delay(in example it’s 5 seconds) between last task end time and next task start time. 
+            For example, if task starts at 11:00:00 and it takes 3 seconds to execute next task starts at 11:00:08.
+fixedRate:  Run tasks with a fixed rate of given time. For example in above example
+	    fixedRateTask() is called every 6 seconds. (ie: 11:00:00, 11:00:06, 11:00:12, …)
+initialDelay: This can be used with above examples. This property sets delay for first time run. 
+              For example, if program starts at 11:00:00 fixedRateWithInitialDelayTask() will run at 11:00:02, 11:00:09, 11:00:16, …
+cron:       This can be any cron expression.
+1. Controller class
+@Scheduled(fixedRate = 6000)
+	public void performTask() {
+		System.out.println("fixed task performed at "+ dateFormat.format(new Date()));
+	}
+
+	@Scheduled(fixedDelay = 5000)
+	 public void fixedDelayTask() {
+	 System.out.println(new Date() + " This runs in a fixed delay");
+	 }
+
+	
+	@Scheduled(initialDelay = 1000, fixedRate = 10000)
+	public void performDelayedTask() {
+		System.out.println("Delayed Regular task performed at "+ dateFormat.format(new Date()));
+	}
+
+	@Scheduled(cron = "*/5 * * * * *")
+	public void performTaskUsingCron() {
+		System.out.println("Regular task performed using Cron at "+ dateFormat.format(new Date()));
+	}
+	
+	@Scheduled(cron = "10 * * * * *")
+	 public void cronTask(){
+	 System.out.println(new Date() + " This runs in a cron schedule");
+	 }
+2. 
+@SpringBootApplication
+@EnableScheduling
+public class H2dbApplication {
+
+	public static void main(String[] args) {
+		SpringApplication.run(H2dbApplication.class, args);
+	}
+}
+
+----------------2nd example ---------------------------
+1. Booterclass
+@SpringBootApplication
+@EnableScheduling
+@ComponentScan({"com.example.demo.task"})
+public class SchedularApplication {
+
+	public static void main(String[] args) {
+		SpringApplication.run(SchedularApplication.class, args);
+	}
+}
+
+2. Mytask
+@Component
+public class Mytask {
+
+	private static final SimpleDateFormat dateFormat = 
+			new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
+	
+	@Scheduled(fixedRate = 5000)
+	public void sendMailToMyFriend(){
+		
+		System.out.println("sendMailToFriends at " +dateFormat.format(new Date()));
+		
+	}
+}
+	 
+-----------------Spring boot RestfulApi Documentation with Swagger ---------------------------
+1. Documentation of REST services is very important to develop.
+2. This documentation should help consumers of the service to know which all services are available.
+
+Swagger :--
+1. Swagger is widely used for visualizing APIS
+2. Swagger UI it provides online sandbox for frontend developers
+3. Swagger is a tool, a specification and a complete framework implemention for producing the visual representation of 
+   Restful webservices.
+   
+   
+   
+http://localhost:8080/v2/api-docs
+http://localhost:8080/swagger-ui.html
+
+------------ Spring boot security OAuth2 ----------------
+1. OAuth(Open Authentication) is a  simple way to publish and interact with protected data.
+2. It is an token-based authentication and autherization on the internet.
+3. It allows an end-user's account information to be used by third-party services. such as facebook with out 
+   exposing the user's password.
+The OAuth specification describes five grants for acquiring an access token.
+1. Authorization code grant  -- used with server-side applications
+2. Implicit grant  -- used with mobile apps or web applications
+3. Resource owner credentials grant -- used with trusted applications,such as those owned by the service itself
+4. Client credentials grant --  used with applications API access
+5. Refresh token grant
+
+
+
+1. In memory authentication.
+pom.xml
+---------------------
+<dependencies>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-data-jpa</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-web</artifactId>
+		</dependency>
+
+<!-- 		<dependency> -->
+<!-- 			<groupId>org.apache.derby</groupId> -->
+<!-- 			<artifactId>derby</artifactId> -->
+<!-- 			<scope>runtime</scope> -->
+<!-- 		</dependency> -->
+		<dependency>
+			<groupId>com.h2database</groupId>
+			<artifactId>h2</artifactId>
+			<scope>runtime</scope>
+		</dependency>
+<!-- 		<dependency> -->
+<!-- 			<groupId>org.hsqldb</groupId> -->
+<!-- 			<artifactId>hsqldb</artifactId> -->
+<!-- 			<scope>runtime</scope> -->
+<!-- 		</dependency> -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>mysql</groupId>
+			<artifactId>mysql-connector-java</artifactId>
+			<scope>runtime</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-security</artifactId>
+		</dependency>
+		
+	</dependencies>
+
+------------------
+application.properties
+server.port=6050
+
+spring.datasource.url=jdbc:mysql://localhost:3306/hibdb
+spring.datasource.username=root
+spring.datasource.password=Muthu
+spring.jpa.hibernate.ddl-auto=update
+spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.MySQLDialect
+spring.jpa.show-sql=true
+security.user.name=admin
+security.user.password=pass
+---------------
+bean
+@Entity
+@Table(name="ticket")
+public class Ticket {
+
+	@Id
+	@GeneratedValue(strategy=GenerationType.AUTO)
+	@Column(name="ticket_id")
+	private Integer ticketId;
+	
+	
+	@Column(name="passenger_name",nullable=false)
+	private String passengerName;
+	
+	
+	@Column(name="booking_date")
+	private Date bookingDate;
+	
+	
+	@Column(name="source_station")
+	private String sourceStation;
+	
+	
+	@Column(name="dest_station")
+	private String destination;
+	
+	@Column(name="email")
+	private String email;
+
+	public Integer getTicketId() {
+		return ticketId;
+	}
+
+	public void setTicketId(Integer ticketId) {
+		this.ticketId = ticketId;
+	}
+
+	public String getPassengerName() {
+		return passengerName;
+	}
+
+	public void setPassengerName(String passengerName) {
+		this.passengerName = passengerName;
+	}
+
+	public Date getBookingDate() {
+		return bookingDate;
+	}
+
+	public void setBookingDate(Date bookingDate) {
+		this.bookingDate = bookingDate;
+	}
+
+	public String getSourceStation() {
+		return sourceStation;
+	}
+
+	public void setSourceStation(String sourceStation) {
+		this.sourceStation = sourceStation;
+	}
+
+	public String getDestination() {
+		return destination;
+	}
+
+	public void setDestination(String destination) {
+		this.destination = destination;
+	}
+
+	public String getEmail() {
+		return email;
+	}
+
+	public void setEmail(String email) {
+		this.email = email;
+	}
+
+	@Override
+	public String toString() {
+		return "Ticket [ticketId=" + ticketId + ", passengerName=" + passengerName + ", bookingDate=" + bookingDate
+				+ ", sourceStation=" + sourceStation + ", destination=" + destination + ", email=" + email + "]";
+	}
+	
+}
+--------------
+service
+
+@Service
+public class TicketBookingService {
+	
+	@Autowired
+	public TicketBookingDao ticketBookingDao;
+
+	public Ticket createTicket(Ticket ticket) {
+		return ticketBookingDao.save(ticket);
+	}
+
+	
+	public Ticket getTicketById(Integer ticketId) {
+		return ticketBookingDao.findOne(ticketId);
+	}
+
+
+	public Iterable<Ticket> getAllBookedTickets() {
+		return ticketBookingDao.findAll();
+	}
+
+
+	public void deleteTicket(Integer ticketId) {
+		ticketBookingDao.delete(ticketId);
+	}
+
+	public Ticket updateTicket(Integer ticketId, String email) {
+		Ticket ticketfromDB = ticketBookingDao.findOne(ticketId);
+		ticketfromDB.setEmail(email);
+		Ticket updatedTicket = ticketBookingDao.save(ticketfromDB);
+		return updatedTicket;
+	}
+	
+	
+
+}
+-------------------------
+dao
+@Repository
+public interface TicketBookingDao extends CrudRepository<Ticket, Integer>{
+}
+----------------
+controller
+@RestController
+@RequestMapping(value="/api/")
+public class TicketBookingController {
+
+	@Autowired
+	public TicketBookingService ticketBookingService;
+	
+	
+	@PostMapping(value="/create")
+	public Ticket createTicket(@RequestBody Ticket ticket) {
+		return ticketBookingService.createTicket(ticket);
+	}
+	
+	@GetMapping(value="/tickets/{ticketId}")
+	public Ticket getTicketById(@PathVariable("ticketId") Integer ticketId) {
+		return ticketBookingService.getTicketById(ticketId);
+	}
+	
+	@GetMapping(value="/admin/ticket/alltickets")
+	public Iterable<Ticket> getAllBookedTickets() {
+		return ticketBookingService.getAllBookedTickets();
+	}
+	@DeleteMapping(value="/ticket/{ticketId}")
+	public void deleteTicket(@PathVariable("ticketId") Integer ticketId) {
+		ticketBookingService.deleteTicket(ticketId);
+	}
+	
+	
+	@RequestMapping(value="/ticket/{ticketId}/{newEmail:.+}")
+	public Ticket updateTicket(@PathVariable("ticketId") Integer ticketId,@PathVariable("newEmail") String email) {
+		return ticketBookingService.updateTicket(ticketId,email);
+	}
+}
+------------------
+config
+@EnableWebSecurity
+public class SecurityConfig extends WebSecurityConfigurerAdapter{
+
+	@Override
+	protected void configure(HttpSecurity http) throws Exception {
+		
+		http.csrf()
+		    .disable()
+		    .authorizeRequests()
+		    .antMatchers("/api/tickets/**")
+		    .hasAnyRole("admin","user")
+		    .and()
+		    .formLogin();
+		
+
+		http.csrf()
+		    .disable()
+		    .authorizeRequests()
+		    .antMatchers("/api/admin/**")
+		    .hasAnyRole("admin")
+		    .and()
+		    .formLogin();
+	}
+	
+	
+	@Autowired
+	public void configureGlobal(AuthenticationManagerBuilder auth) throws Exception {
+	
+		auth.inMemoryAuthentication().withUser("muthu").password("pass@123").roles("user");
+		auth.inMemoryAuthentication().withUser("dakshith").password("pass@123").roles("user","admin");
+		
+	}
+	
+}
+----------------
+main
+@SpringBootApplication
+public class TicketBookingManagementAppApplication{
+	
+//	implements CommandLineRunner{
+//	
+//	@Autowired
+//	public TicketBookingService ticketBookingService;
+//	
+//	@Autowired
+//	private DataSource dataSource;
+
+	public static void main(String[] args) {
+		
+    SpringApplication.run(TicketBookingManagementAppApplication.class, args);
+		
+	}
+
+//	@Override
+//	public void run(String... arg0) throws Exception {
+//		
+//		Ticket ticket = new Ticket();
+//		ticket.setBookingDate(new Date());
+//		ticket.setDestination("Marathalli");
+//		ticket.setSourceStation("Pune");
+//		ticket.setPassengerName("Muthu");
+//		ticket.setEmail("muthu@gmail.com");
+//		ticketBookingService.createTicket(ticket);
+//		
+//		System.out.println("DataSource "+dataSource);
+//		
+//		
+//	}
+}
+--------------------------------------------------------------------------------------------------------------
+
+========================= 2nd way for providing security ================================
+
+package com.example.demo;
+
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.crypto.password.NoOpPasswordEncoder;
+
+@SuppressWarnings("deprecation")
+@Configuration
+public class SpringSecurityConfig extends WebSecurityConfigurerAdapter{
+
+	//authentication  : set user/password details and mention the role
+	@Override
+	protected void configure(AuthenticationManagerBuilder auth) throws Exception {
+		
+		/*auth.inMemoryAuthentication()
+		.passwordEncoder(org.springframework.security.crypto.password.NoOpPasswordEncoder.getInstance())
+		.withUser("user").password("pass").roles("USER")
+		.and()
+		.withUser("admin").password("pass").roles("USER","ADMIN");*/
+		
+		auth.inMemoryAuthentication().withUser("java").password("java").roles("ADMIN");
+		
+	}
+	
+	//autherization : mention which role can access which URL
+	
+	// security for all api
+	/*@Override
+	protected void configure(HttpSecurity http) throws Exception {
+		
+		http.httpBasic().and().authorizeRequests()
+		.antMatchers("/userlogin").hasRole("USER")
+		.antMatchers("/adminlogin").hasRole("ADMIN")
+		.and()
+		.csrf().disable().headers().frameOptions().disable();
+		
+		
+		http.csrf().disable();
+		http.authorizeRequests().anyRequest().fullyAuthenticated().and().httpBasic();
+	}*/
+	
+	// security based on URL
+	@Override
+	protected void configure(HttpSecurity http) throws Exception {
+		
+		http.csrf().disable();
+		http.authorizeRequests().antMatchers("/userlogin/**").hasRole("ADMIN").and().httpBasic();
+	}
+	
+	
+	@Bean
+	public static NoOpPasswordEncoder passwordEncoder() {
+		return (NoOpPasswordEncoder)NoOpPasswordEncoder.getInstance();
+	}
+}
+
+
+-----------controller----
+@RestController
+public class SpringJava4sController {
+
+	@RequestMapping("/userlogin")
+	public String userValidation() {
+		return "User: Successfully logged in";
+	}
+	
+	
+	@RequestMapping("/adminlogin")
+	public String adminValidation() {
+		return "Admin: Successfully logged in";
+	}
+}
+
+------bootstrap class-------
+@SpringBootApplication
+@EnableWebSecurity
+public class SpringbootSecurityApplication {
+
+	public static void main(String[] args) {
+		SpringApplication.run(SpringbootSecurityApplication.class, args);
+	}
+}
+
+--------
+============================================= End =====================================================================
+
+
+
+              
+
+
+
+
+
+

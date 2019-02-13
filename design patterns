@@ -1,0 +1,134 @@
+Singleton design patterns:-
+
+package prac;
+
+public class Singleton {
+
+	public static void main(String[] args) {
+
+//		Abc obj = Abc.getInstance();
+//		obj.display();
+		
+		
+		//lazy instantiation
+//		Abc2 obj = Abc2.getInstance();
+//		Abc2 obj2 = Abc2.getInstance();
+		
+		//using synchronized
+		
+		/*Thread thread1 = new Thread(new Runnable() {
+			
+			@Override
+			public void run() {
+				DoubleCheckedLocking obj = DoubleCheckedLocking.getInstance();
+				
+			}
+		});
+		
+		Thread thread2 = new Thread(new Runnable() {
+			
+			@Override
+			public void run() {
+				DoubleCheckedLocking obj = DoubleCheckedLocking.getInstance();
+				
+			}
+		});
+		
+		thread1.start();
+		thread2.start();*/
+		
+		EnumDemo obj1= EnumDemo.INSTANCE;
+		obj1.i=4;
+		obj1.show();
+		
+		EnumDemo obj2= EnumDemo.INSTANCE;
+		obj2.i=6;
+		obj1.show();
+	}
+
+}
+
+class Abc{
+	
+	static Abc obj=new Abc(); //eagerly object is created
+	
+	private Abc() {
+		
+	}
+	
+	public static Abc getInstance() {
+		return obj;
+	}
+	
+	public void display() {
+		System.out.println("Welcome to Singleton Class.");
+	}
+}
+
+class Abc2{
+	
+	public static Abc2 obj; //lazy object is created whenever getInstance is called
+	
+	private Abc2() {
+		System.out.println("Instance is created.");
+	}
+	
+	public static synchronized Abc2 getInstance() {
+		if(obj == null)
+		{
+		obj=new Abc2();
+		}
+		return obj;
+	}
+	
+	public void display() {
+		System.out.println("Welcome to Singleton Class.");
+	}
+}
+class DoubleCheckedLocking{
+	
+	public static DoubleCheckedLocking obj; //lazy object is created whenever getInstance is called
+	
+	private DoubleCheckedLocking() {
+		System.out.println("Instance is created.");
+	}
+	
+	public static DoubleCheckedLocking getInstance() {
+		if(obj == null)
+		{
+			synchronized (DoubleCheckedLocking.class) {
+				if(obj == null)
+				obj=new DoubleCheckedLocking();
+			}
+		}
+		return obj;
+	}
+	
+	public void display() {
+		System.out.println("Welcome to Singleton Class.");
+	}
+}
+
+
+enum EnumDemo{
+	INSTANCE;
+	int i;
+	public void show() {
+		System.out.println(i);
+	}
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

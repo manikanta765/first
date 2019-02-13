@@ -1,0 +1,120 @@
+ConcurrentHashmap:--
+Underlying datastructure is HashTable.
+To perform read operations thread won't require any lock, but to perform update operations thread require lock but it is the lock of only a
+particular part of Map(Bucket level lock).
+ConcurrentHashmap to perform simuntaneously read and write(update) operations.
+Null is not allowed for both keys and values.
+While one thread iterating the other thread can perform update operation. 
+
+package prac;
+
+import java.util.Iterator;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+
+public class ConcurrentHashmapDemo extends Thread{
+
+	static ConcurrentHashMap map = new ConcurrentHashMap();
+	
+	public void run() {
+		
+		try {
+			Thread.sleep(2000);
+		} catch (InterruptedException e) {
+              System.out.println("Child Thread updating Map");
+		}
+		   map.put(103,"C");
+	}
+	
+	
+	public static void main(String[] args) throws InterruptedException {
+		
+		map.put(101,"A");
+		map.put(102,"B");
+		
+		ConcurrentHashmapDemo mythread =  new ConcurrentHashmapDemo();
+		mythread.start();
+		
+		Set s1 = map.keySet();
+		Iterator itr = s1.iterator();
+		while(itr.hasNext()) {
+			Integer it = (Integer) itr.next();
+			System.out.println("Main thread iterating Map and Current Entry is:"+it+",,,,,"+map.get(it));
+			Thread.sleep(3000);
+		}
+		
+		System.out.println(map);
+	}
+}
+
+
+
+Hashmap:--
+Hashmap implements map interface
+It will works on hashing principle
+Hashmap elements internally stores array of buckets this buckets size is 16
+in array each index is node means linkedlist
+Hashmap is not synchronized.
+Hashmap default capacity is 16
+Hashmap can store one null key and more than one null values
+If key is null it will stored in 0th position
+If key is not null it will call the hash(key) function and get the hashcode value.
+Pass the hashcode to the index() and get the index value.
+If two keys having same hashcode it will create the linked list in the same bucket.
+When two or more keys having same hashcode Collision will happen.
+
+
+package prac;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+
+public class HashmapDemo {
+
+	public static void main(String[] args) {
+
+		
+		Map<Integer,String>  hashmap = new HashMap<>();
+			hashmap.put(1,"A");
+			hashmap.put(2,"C");
+			hashmap.put(4,"E");
+			hashmap.put(5,"D");
+			hashmap.put(6,"B");
+			hashmap.put(7," ");
+			hashmap.put(null,"one");
+			hashmap.put(null,"two");
+			hashmap.put(8,null);
+			hashmap.put(9,null);
+			
+			hashmap.forEach((k,v)->System.out.println(k+" "+v));
+			
+//		
+//		Set<Integer> keys = hashmap.keySet();
+//		for(Integer i:keys) {
+//			System.out.println(i + " : " + hashmap.get(i));
+//		}
+//		
+//		Set<Map.Entry<Integer, String>> values = hashmap.entrySet();
+//		
+//		for(Map.Entry<Integer, String> e : values) {
+//			
+//			System.out.println(e.getKey() + " : " + e.getValue());
+//		}
+	}
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+

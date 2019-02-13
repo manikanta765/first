@@ -1,0 +1,33 @@
+Jenkins is an opensource
+Jenkins is Continous Delivery and Continous Integeration
+Jenkins is developed by Java language
+Before Jenkins we are using Hudson.
+
+Jenkins installation in three ways:-
+-----------------
+1. jenkins.exe
+2. tomcat -- jenkins.war
+3. jenkins.war -- java -jar jenkins.war --httpPort=8082
+
+After installing jenkins by default it will open admin user, if we want to reset the admin passord , 
+Manage Jenkins --> Manage Users --> Click the image icon and reset it.
+
+
+
+Administrator part:--
+---------------------
+1. Project based security
+2. Matrix based security
+3. Role base security
+
+
+Upstream Project
+DownStream Project
+
+Plugins:--
+-------
+1. Backup plugin -- Taking jenkins backup server
+2. Green Ball
+3. Nestedview plugin -- It will create view with in a view
+4. Build pipeline pulugin -- It will create view (dependecies jobs)
+                      -- It will create upstream and downstream relationship

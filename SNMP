@@ -1,0 +1,68 @@
+Simple Network Management Protocal:- It is introduced in 1988,before that SGMP (Simple Gatway Management of Protocal)
+---------------------------------
+1. It is nothing but Manager-Agent Model
+2. It works Based on MIB(Management Information Base) -- This is nothing but set of commands
+3. If we want to communicate Manager-Agent Model we have to use MIB.
+4. If we want to see whether two systems having connectivity or not using Ping command in SNMP
+   Ping will send echo packets to those systems , if we will not receive echo response then it will say there is not connection
+   between the systems.
+5. Spiceworks,Zabbix,OpenNms are software in this software we have snmp for tracking the LAN information.
+6. Installing SNMP in that system we can call Manager remaining systems we can call Agents.
+7. We have two main features
+   1. getResponse
+   2. Traps
+8. Before installing snmp we want to enable snmp firewall in our system.Because by default our system firewall it will block the 
+   SNMP 
+9. SNMP Protocal will always work on UDP Ports.
+
+Networking Devices:--
+-----------------------
+1. Repeater
+2. Hub
+3. Switch
+4. Bridge
+5. Router
+6. Firewalls
+
+Hub:--    It is not an Intellegent Device
+-----     It works with MIBS
+          User BroadCast for communication
+          Bandwidth is shared
+          Half-duplex communication
+          It is not secure
+Example:--   Suppeose Hub is connecting 4 systems
+             like a,b,c,d
+             for a system communicate to b but in this case a system some broad cast send to Hub , then hub will transfer to 
+             all systems , then d system will respose to a in this case data is sending to all system , in this case data is
+             not secure.
+       Note: Here Half-duplex means suppose A sending some data to D system in this case at the same time D system will send
+             any data to A.
+
+Switch:-- Here Switchs are two types
+          1. Managed   -- Configure(Costly)
+          2. Un Managed -- Not configure
+          
+          1. It is an Intelligent Device
+          2. It maintains MAC address table(hardware address)
+          3. Each port of the switch has fixed bandwidth
+          4. It works with flooding and unicast
+          5. Supports full-duplex communication
+
+Repeater: -- Mainly using wifi connections
+             Forwarding signal from one system to another system
+Bridge : -  Mainly using LANS it means while communicationg one LAN to another LAN in between we are using Bridges.
+
+Router:-- This is the king of networks
+          It will communicate suppose one LAN is having one city another LAN having another city it will communicate through
+          Routers.
+Firwall:-- It will work like Routers providing security.
+
+MAC:--Media Access Control It is available in Datalink layer
+      It contains 6 bytes or 40 bits 
+
+
+          
+             
+             
+
+   

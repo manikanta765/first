@@ -1,0 +1,152 @@
+Lambda (->) expressions:--
+-----------------
+Why we are using lambda expressions in java
+1. To enable functional programming in java
+2. To write more readble,maintainable and clean consise code
+3. To use Api's very easily and effectively
+4. To enable parallel processing.
+
+What is Lambda expressions:--
+--------------------------
+1. It is an annonymous function
+2. Not having name
+3. Not having modifiers
+4. Not having any return type
+
+Examples:-
+--------
+1. m1() -> {s.o.p("Hello"));}
+2. (int a,int b) -> {s.o.p("a+b");}
+3. (String s) -> {return s.length();}
+
+Note:--
+--------------
+1. If body of lambda expressions contains only one line curly braces are optional
+() -> s.o.p("Hello");
+exmp: (int a,int b) -> s.o.p(a+b);
+2. If we are passing one input parameter parenthesis is optional
+exmp: (s) -> s.o.p("Hello");
+        s -> s.length();
+3. Lambda paranthesis
+() -> s.o.p("Hello");
+(a,b) -> s.o.p(a+b);
+s -> s.length();
+
+4. If multiple parameters present then these parameters should be seperaed with ,
+(a,b) -> s.o.p(a+b);
+	
+
+
+Predicate: 
+Predicate is an functional interface
+By using predicate we can perform conditional operations on collection object.
+
+Example:-
+--------------
+1. class Emp{
+	
+	private String empId,empName,empDesg;
+	int age;
+	private int bsal;
+	
+	public Emp(String empId, String empName, String empDesg, int age, int bsal) {
+		super();
+		this.empId = empId;
+		this.empName = empName;
+		this.empDesg = empDesg;
+		this.age = age;
+		this.bsal = bsal;
+	}
+
+	@Override
+	public String toString() {
+		return "Emp [empId=" + empId + ", empName=" + empName + ", empDesg=" + empDesg + ", age=" + age + ", bsal="
+				+ bsal + "]";
+	}
+}
+
+2.  public class PredicateDemo {
+  	public static void main(String[] args) {
+		ArrayList<Emp> a1 = new ArrayList<Emp>();
+		a1.add(new Emp("101", "muthu", "SE", 13, 500));
+		a1.add(new Emp("102", "raju", "TE", 14, 900));
+		a1.add(new Emp("103", "chinny", "EE", 15, 200));
+		a1.add(new Emp("104", "bunny", "E", 12, 400));
+		a1.add(new Emp("105", "pinku", "ME", 45, 300));
+		a1.add(new Emp("106", "dad", "GE", 22, 600));
+	
+		a1.forEach((s) ->{
+			System.out.println(s);
+		});
+		
+		Predicate<Emp> p1 = (p)->p.age>=14;
+		
+		System.out.println("--------Dis emp data where age >=14");
+		
+		a1.forEach((s) ->{
+			
+			if(p1.test(s)) {
+				System.out.println(s);
+			}
+		});
+		
+	}
+	
+}
+
+BiPredicate:-
+BiPredicate is an functional interface
+By using predicate we can perform conditional operations on Map object.
+
+Example:
+1. class Emp{
+	
+	private String name,desg;
+	int age;
+	private int bsal;
+	
+	public Emp(String name, String desg, int age, int bsal) {
+		super();
+		this.name = name;
+		this.desg = desg;
+		this.age = age;
+		this.bsal = bsal;
+	}
+
+	@Override
+	public String toString() {
+		return "Emp [name=" + name + ", desg=" + desg + ", age=" + age + ", bsal=" + bsal + "]";
+	}
+	
+	
+}
+2. public class BipredicateDemo {
+
+	public static void main(String[] args) {
+
+		Map<String, Emp> map = new HashMap<String, Emp>();
+		map.put("A123",new Emp("muthu", "SE", 45,35400));
+		map.put("A124",new Emp("latha", "SE", 46,35400));
+		map.put("A125",new Emp("Dakshit", "SE", 35,35400));
+		map.put("A126",new Emp("Raju", "SE", 48,35400));
+		
+	
+		map.forEach((p,q) ->{
+			System.out.println(p+"\t"+q);
+		});
+		
+		System.out.println("---Dis using Bipredicate where age 45-----");
+			
+			
+			BiPredicate<String, Emp> p1 = (x,y)->y.age>=45;
+			
+			map.forEach((p,q)->{
+				
+				if(p1.test(p, q)) {
+					System.out.println(p+"\t"+q);
+				}
+			});
+			
+		}
+}
+

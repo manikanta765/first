@@ -1,0 +1,185 @@
+Python is developed by Guido Van Rossam
+Feb 20th 1991
+
+Features of Python
+-----------------
+1. Simple and easy to learn
+2. Freeware and OpenSource
+3. Highlevel Programming language
+4. Platform independent
+5. Portable
+6. Dynamically Typed Programming(it means we are not providing datatype)
+7. Both Procedure Oriented and Object oriented 
+8. Interpreted (we are not going to compile)
+9. Extensible (can work with other languages)
+10. Embeded (other language can work with python)
+11. Extensive Library
+
+Limitations of Python:-
+------------------------------
+1. Performance wise is not upto the mark.(Because of Interpreter it is seeing only line by line)
+2. Mobile Applications
+
+Myth: 
+---------
+Python is not suitable for large scale enterprise applications.
+Python is not pure object oriented programming language.
+
+Flavours of Python:--
+-----------------------
+1. CPython
+2. Jython or JPython
+3. IronPython to work with csharp .net platform
+4. Pypy Performance Python
+5. RubyPython
+6. AnacondaPython To handle Bigdata
+7. Stackless(Python for Concurrency)
+
+Python Versions:--
+------------
+Python 1.0 introduced in Jan 1994
+Python 2.0 introduced in Oct 2000
+Python 3.0 introduced in Dec 2008
+Python 3.6.3 2016
+
+Identifiers in the Python:--
+We can define identifiers are variable names, class names, method names.
+Identifiers are case sensitive
+
+Rules for Identifiers:--
+-----------
+1. alphabets(a to z, A to  Z)
+2. digits(0 to 9)
+3. _
+4. we cant start with digits
+5. we cant use reserved words
+6. No lenght limit for python identifier
+7. we can define any identifer starts with underscore(_) we can say this is private identifer if it is __ stronly identifier
+
+
+Reserved words:--
+-------------
+In Python having 33 reserverd words
+['False', 'None', 'True', 'and', 'as', 'assert', 'break', 'class', 'continue', 'def', 'del',
+'elif', 'else', 'except', 'finally', 'for', 'from', 'global', 'if', 'import', 'in', 'is', 'lambda',
+'nonlocal', 'not', 'or', 'pass', 'raise', 'return', 'try', 'while', 'with', 'yield']
+
+DataTypes:-
+---------------
+int
+float
+complex
+bool
+str
+bytes
+bytearray
+range
+list
+tuple
+set
+frozenset
+dict 
+none
+
+slice operator:--
+-------
+s=[beginindex:endindex]
+returns substring from begin index to end-1 index
+
+s='durga'
+s[1:4]==> urg
+s[1:]==>urga
+s[:4]===>durg
+s[:]====>durga it will print full string
+
+
+bytes datatype:-
+---------------
+It represents a group of byte numbers just like array.
+1. in the range 0 to 256
+2. Immutable
+
+byte array:--
+-------
+mutable
+example:  x=[10,20,30,40,50]
+          b=bytearray(x)
+
+list data type:--[]
+-----------
+list is mutable
+Insertion ordered is preserved and duplicates are allowed.
+Null insertion is not allowed.
+
+tuple data type:--()
+--------------
+tuple is immutable
+
+instead of null we can insert NONE
+
+range():--
+----------- 
+range datatype represents a sequence of values.
+immutable
+
+Form-1:
+--------range(x)
+It represents values from 0 to 9(end-1)
+
+Form-2:--
+------------
+range(10,30)--> to represent numbers from 10 to 29
+
+Form-3:--
+-----
+range(10,50,5) --> it will increments by 5
+
+Set:-- { }
+------
+mutable
+Insertion order is not preserved.
+Duplicates are not allowed.while inserting duplicate it will not get any compilation error
+index concept is not applicable,
+slicing concept is not applicable.
+
+frozenset datatype:-
+-----
+Immutable
+if we want to represent a unique values, no one is change to content then we can grow for frozenset.
+
+dict:-
+---
+mutable
+
+Operators:--
+-------
+1. Arithmetic operator
+2. Assignment operator
+3. Bitwise operator
+4. Logical operator
+5. Special Operators
+6. Relational opertors
+
+1. Arithmetic operator
+-------------------------
++
+-
+/
+*
+%
+//   Floor Division operator The result of floor division operator is if both argument is int it will display int,if both
+     operator is float it will display float values
+**   Exponent operator or Power operator
+
+2. Relational operator:-
+--------------------
+
+
+
+
+
+
+
+
+
+

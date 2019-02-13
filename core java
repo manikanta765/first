@@ -1,0 +1,411 @@
+MethodOverloading:--
+------------------
+Step1: Automatic promotion in overloading
+        While resolving overloaded methods if exact matched method is not available , then we wont get any compile time error
+        immediately , first it will promote argument to the next level and check whether matched method is available or not,if 
+        matched method is available then it will be considered,and if the matched method is not available then compiler promotes 
+        arguments once again to the next level, this process will be continued untill all possible promotions,still if the matched
+        method is not available then we will get compile time error. the following are all possible promotions in overloading.
+        
+        byte-short-int-long-float-double
+        char-int
+
+example:-- 
+
+public class ClassA {
+
+	
+	public void  m1(int i) {
+		System.out.println("int args");
+	}
+	
+
+	public void  m1(float f) {
+		System.out.println("float args");
+	}
+	
+	public static void main(String[] args) {
+		
+		ClassA a = new ClassA();
+		a.m1('a');
+		a.m1(10l);
+		
+	}
+}
+
+Step2:--
+public class ClassA {
+
+	public void m1(String s) {
+		System.out.println("String version");
+	}
+	
+	public void m1(Object o) {
+		System.out.println("Object version");
+	}
+	
+	public static void main(String[] args) {
+		
+		ClassA a = new ClassA();
+		a.m1(null);
+		a.m1(null);
+		
+	}
+}
+
+
+Note: while resolving overloaded methods compiler will always gives the presidence for child type arguments then compared with
+parent type arguments.
+
+
+Step3:- 
+public class ClassA {
+	
+	public void m1(String s) {
+		System.out.println("String version");
+	}
+	
+	public void m1(StringBuffer sb) {
+		System.out.println("stringbuffer version");
+	}
+	
+	public static void main(String[] args) {
+		ClassA a = new ClassA();
+		a.m1("durga");
+		a.m1(new StringBuffer("durga"));
+		a.m1(null);
+	}
+}
+Note : In this case both string and string buffer are same level, it will throw ambigues error
+
+Step4:--
+public class ClassA {
+	
+	public void m1(int i,float f) {
+		System.out.println("String version");
+	}
+	
+	public void m1(float f,int i) {
+		System.out.println("Object version");
+	}
+	
+	public static void main(String[] args) {
+		
+		ClassA a = new ClassA();
+		a.m1(10,10.5f);
+		a.m1(10,10);//compilation error
+		a.m1(10.5f,10.5f); // compilation error
+		
+	}
+}
+
+Step5:
+public class ClassA {
+	
+	public void m1(int x) {
+		System.out.println("String version");
+	}
+	
+	public void m1(int... x) {
+		System.out.println("Object version");
+	}
+	
+	
+	public static void main(String[] args) {
+		
+		ClassA a = new ClassA();
+		a.m1();
+		a.m1(10,20,30,40,50);
+	       a.m1(10);
+	}
+}
+
+In general var-args method will get least priority ie. if no other method matched then only var arg method will get the 
+chance , It exactly same as default case inside switch.
+
+
+
+
+
+In Methodoverriding method names and argument types must be matched i.e method signatures must be same.
+
+co-varient return type:
+-------------------------
+In overriding return types must be same, but this rule is applicable until 1.4 versionn only from 1.5 version onwards we can take 
+co-varient return types -- Child class method return type need to be same as Parent class method return type,its child type also allowed,
+                             It's applicable only for object types not for primitive type.
+
+class Parent
+{
+  public Object m1()
+  {
+  return null;
+  }
+}
+Class C extend Parent
+{
+public String m1()
+{
+  return null;
+ }
+} 
+
+parent class method retrun type:-- object,Number,String,double
+------------------------
+
+
+
+child class method return type:--String/object,Number/integer,Object is not applicable because parent to parent is not possible,double only
+-----------------------
+
+Parent class private methods are not applicable for child class and hence overriding concept not applicable for private methods.
+
+we can't override parent class final methods in child classes, if we are trying to override we will get compiletime error
+
+How to define user defined Immutable class:--
+---------------------------------------------
+Step -1 : We can declare class as public final
+Step -2 : We can declare properties as final
+Step -3 : We can declare public constructor
+Step -4 : we can declare only getter methods
+
+public final class Immutable{
+	
+private final int a;
+	
+Immutable(int a){
+		this.a = a;
+	}
+
+	public int getA() {
+		return a;
+	}
+}
+
+
+Exceptions:--
+------------------
+Default excepiton:--    Inside a method if any excepiton occurs the method in which it is raised is responsible to create 
+exception object by including the following information.
+
+1. Name of exception
+2. Desciption of exception
+3. Location at which exception occurs(stack trace)
+                 
+After creating exception object method handovers that object to the JVM
+JVM will check wheather the method contains any excption handling code or not, if the method doesnt contain exception handling
+code then JVM terminates that method obnarmally and removes corresponding entry from the stack.
+Then JVM identifies caller() and checks wheather method contains any handling code or not. if the caller() doesnt conatin 
+handling code JVM terminates that caller method also abnoramlly and removes corresponding from the stack. this process will be 
+continued untill main method and if the main method also doesnt contain handling code then JVM terminates main method also.
+And removes corresponding entry from the stack. Then jvm handovers responsibilty of exception handling to default exception
+handler,which the part of JVM
+Default exception handler prints exception information in the following format and terminates program abnormally
+
+class not found exception:---
+--------------------------
+ClassNotFoundException is a run time exception which is thrown when an application tries to load a class at run time 
+using Class.forName() or loadClass() or findSystemClass() methods and the class with specified name are not found 
+in the classpath.
+
+public class MainClass
+{
+    public static void main(String[] args)
+    {
+        try
+        {
+            Class.forName("oracle.jdbc.driver.OracleDriver");
+        }
+        catch (ClassNotFoundException e)
+        {
+            e.printStackTrace();
+        }
+    }
+}
+
+NoClassDefFoundError:--
+-----------------------
+NoClassDefFoundError is an error which is thrown when Java Runtime System tries to load the definition of a class
+and class definition is no longer available. The required class definition was present at compile time but it was 
+missing at run time. For example, compile the below program.
+
+class A
+{
+ 
+}
+ 
+public class B
+{
+    public static void main(String[] args)
+    {
+        A a = new A();
+    }
+}
+
+Outofmemory:-----
+--------------------    The outofmemoryerror is thrown due to lack of available memory space.
+Checked Exception:-- The Exceptions which are checked by the compiler is known as checked exception.
+                     ex:-- File not found
+Unchecked Exception:-- The Exceptions which are not checked by the compiler is known as Un checked exception.
+                     ex:-- Arithmetic exception
+		     
+Note: Wheather checked or unchecked exceptions occured at runtime only. There is no chance of occuring any exception at
+      compile time.
+      Runtimeexception and its child classes,error and its child classed are unchecked except these remaining are checked excep.
+      
+      
+Fully checked vs Partially checked:--
+-----------------------------
+A checked exception is said to be fully checked iff all its child classes also checked.
+exc:-- IOException
+       Inteerupted Exception
+A checked excepiont is said to be partially checked iff some of its child classes are un checked.
+Ex: Excepitons
+   Throwable
+Note:-- The only possible parially checked exceptions in java are 
+excepiton
+throwable 
+
+
+Note:-- If we have a return value in try with finally block , it will executed both but after returning finally block return
+       value will display.except system.exit(0);
+       
+     public class FinallyDemo {
+
+	public static void main(String[] args) {
+
+		FinallyDemo finallyDemo = new FinallyDemo();
+		boolean returnValue = finallyDemo.isHeOld(55);
+		System.out.println("Return Value :"+returnValue);
+	}
+
+	public boolean isHeOld(int age) {
+		
+		try {
+			if(age > 50) {
+				System.out.println("yes he is old.");
+				return true;
+//				System.exit(0);
+			}
+		}finally {
+			System.out.println("finally block is executed.");	
+		}
+		return false;
+	}
+}
+
+
+Exception:--
+ An exception is an event, which occurs during the execution of a program,it will distrub the normall flow of the program.
+       
+
+---------------------------------------------------------------------------------------- 
+
+ Method Overriding with Exception Handling
+ 
+ "Subclass overridden method cannot throw more checked exceptions than that of super class method".
+ 
+ 1. If super class method does not declare any exception, then sub class overriden method cannot declare checked exception
+ but it can declare unchecked excepitons.
+ 
+ public class SubClass extends SuperClass{
+	
+	public static void main(String[] args) {
+
+		SubClass sub = new SubClass();
+		sub.show();
+	}
+	public void show() throws IOException { // getting compiletime error
+	public void show() throws ArithmeticException {
+		System.out.println("Subclass");
+	}
+}
+
+2. If Super class method throws object of NullPointerException class, then Subclass method can either throw same exception,
+   or can throw no exception but it can never throw object of Exception class.
+
+public class SuperClass {
+
+	public void show() throws Exception {
+		System.out.println("Super class show()");
+	}
+}
+public class SubClass extends SuperClass{
+	public static void main(String[] args) {
+		SubClass sub = new SubClass();
+		sub.show();
+	}
+	public void show() throws ArithmeticException{
+		System.out.println("Subclass");
+	}
+}
+
+
+Exception handling keywords in java:--
+-----------------------
+1. try -- To maintain risky code.
+2. catch -- To maintain Exception handling code.
+3. Finally -- To maintain cleanup code.
+4. throw -- To handover our customized exception object to the JVM manually.
+5. throws -- To delegate responsibilites of exception handling to thea caller.
+
+Various possible compiletime erros in exception handling:--
+--------------------
+1. Unreported exception
+2. Exception has already been caught
+3. Unreachable statement
+4. 
+
+
+Stackoverflow error in java:--
+------------------------------
+1. Stack is used for execution of methods, For every method call one frame or block is created in the stack memory.
+2. The data related to method like parameters,local variables or references to objects are stored in this block.
+3. When the method finishes its execution, this block is removed form the stack along with data stored in it.
+4. Whenever you call a method, it must finishes its execution and leave the stack memory, If your methods are staying in the stack
+   then stack will be full and JVM will throw java.lang.StackOverflowError.
+
+                StackOverFlowError occurs when your program is calling a method recursively without proper terminating the condition.
+		
+public class MyClass {
+    public static void main(String args[]) {
+        
+       addItself(10);
+    }
+    
+    private static void addItself(int i)
+    {
+        addItself(i+i);   //calling itself with no terminating condition
+    }
+}
+-----------------------
+Marker interface has no method. Java has built-in marker interface like Serializable, Clonable etc that are understand by JVM.
+We can create our own marker interface but it has nothing to do with JVM, we can add some checks with
+instanceOf.
+
+Suppose we have an interface like
+
+
+interface Marker{    }
+
+class A implements Marker{
+      //do some task
+}
+
+class Main{
+         public static void main(String[] args){
+            A ob = new A()[
+             if (ob instanceOf Marker){
+                // do some task
+           }
+       }
+}
+
+
+		 
+		 
+		 
+		 
+
+
+

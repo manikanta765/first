@@ -1,0 +1,129 @@
+equals():--
+=================
+It will compare the address of the two objects are equal or not at the same time hashcode return the integer value
+in the particular object.
+
+-->If two objects are equal according to the equals() method,then calling the hashcode method on
+each of the two objects must produce the same integer result.
+
+--> If two objects having the same hashcode then two objects may or may not equal
+
+Note:-- whenever we are overriding the equals method we must override the hashcode otherwise,these objects using in collections, it will provide the in proper results
+
+
+Examples:--
+==================
+
+package prac;
+
+import java.util.HashMap;
+import java.util.HashSet;
+
+public class EqualsAndHashcode {
+
+	public static void main(String[] args) {
+
+		
+		HashSet<Employee> hashset = new HashSet<Employee>();
+		hashset.add(new Employee("101", "SivaReddy"));
+		hashset.add(new Employee("101", "SivaReddy"));
+		hashset.add(new Employee("101", "SivaReddy"));
+		hashset.add(new Employee("101", "SivaReddy"));
+		
+		for(Employee emp : hashset) {
+			System.out.println("emp id " + emp.getEmpId() + "empName" + emp.getEmpName() + " hashCode " +emp.hashCode());
+		}
+		
+		
+		
+		HashMap<Employee,String> hashmap = new HashMap<Employee,String>();
+		hashmap.put(new Employee("101", "Sivareddy"), "Testing1");
+		hashmap.put(new Employee("101", "Sivareddy"), "Testing1");
+		hashmap.put(new Employee("101", "Sivareddy"), "Testing1");
+		hashmap.put(new Employee("101", "Sivareddy"), "Testing1");
+		
+		System.out.println(hashmap);
+		
+	}
+
+}
+
+class Employee{
+	
+	private String empId;
+	private String empName;
+	public Employee(String empId, String empName) {
+		super();
+		this.empId = empId;
+		this.empName = empName;
+	}
+	public String getEmpId() {
+		return empId;
+	}
+	public void setEmpId(String empId) {
+		this.empId = empId;
+	}
+	public String getEmpName() {
+		return empName;
+	}
+	public void setEmpName(String empName) {
+		this.empName = empName;
+	}
+	
+	
+	@Override
+	public boolean equals(Object obj) {
+		
+		if(!(obj instanceof Employee)) 
+			return false;
+			if(obj == this)
+			return true;
+			return this.empId == ((Employee) obj).empId && 
+					this.empName ==  ((Employee) obj).empName;
+		}
+	
+	@Override
+	public int hashCode() {
+		
+		final int prime = 31;
+		int result =1;
+		result = prime * result +((empId == null) ? 0:empId.hashCode());
+		return result;
+	}
+	
+}
+
+---------------------------------------2nd Example ---------------------------------------------------
+
+public class Tests {
+
+
+    int sno;
+    String name;
+
+    public Tests(int sno,String name){
+
+        this.sno = sno;
+        this.name = name;
+    }
+
+    @Override
+    public String toString(){
+        return sno+" "+name;
+    }
+
+    @Override
+    public int hashCode(){
+        return sno+name.hashCode();
+    }
+
+    public static void main(String[] args) {
+
+        Tests s1 = new Tests(101,"muthu");
+        Tests s2 = new Tests(101,"muthu");
+
+        System.out.println(s1.hashCode());
+        System.out.println(s2.hashCode());
+    }
+}
+

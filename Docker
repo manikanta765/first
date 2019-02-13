@@ -1,0 +1,23 @@
+Docker: Docker is a platform for developing,shipping and running applications using a container based virtualization technique.
+1. Runs the same operating system as the Host Os
+2. This allows it to share a lot of host operationg system resources.
+3. In order to achieve this they Originally used LXC(Linux Containers) but later moved to runC(akaLibContainer).
+
+Docker Components:-
+
+1. Docker Engine
+2. Docker Hub
+3. Docker Machine
+4. Docker Compose
+5. Docker Swarm
+6. Kitematic
+
+Docker Concepts:--
+
+Docker Container
+Docker Images
+Docker Volumes
+Docker commits/tags/push/pull
+Docker command line (CLI)
+
+

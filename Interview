@@ -1,0 +1,5 @@
+CTS:--
+----------------
+1.Class not found excepiton and No class error.
+2.stackoverflow and outofmemory exception
+3. when we are using string, string s= new string 

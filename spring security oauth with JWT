@@ -1,0 +1,755 @@
+Authoriztion Server (Service)
+pom.xml
+-------------------
+<dependencies>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-security</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-web</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.cloud</groupId>
+			<artifactId>spring-cloud-starter-oauth2</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.security</groupId>
+			<artifactId>spring-security-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+			 <dependency>
+		 <groupId>org.springframework.cloud</groupId>
+		 <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
+	 </dependency>
+	 <dependency>
+		 <groupId>org.springframework.boot</groupId>
+		 <artifactId>spring-boot-starter-security</artifactId>
+	 </dependency>
+	 <dependency>
+		 <groupId>io.jsonwebtoken</groupId>
+		 <artifactId>jjwt</artifactId>
+		 <version>0.9.0</version>
+	 </dependency>
+	 <dependency>
+		 <groupId>org.springframework.boot</groupId>
+		 <artifactId>spring-boot-devtools</artifactId>
+		 <optional>true</optional>
+	</dependency>
+	</dependencies>
+  
+  
+  2. application.properties
+spring.application.name=auth-service
+server.port=9100
+eureka.client.service-url.default-zone=http://localhost:8761/eureka
+
+3. Bootstrap class:--
+@SpringBootApplication
+public class AuthorizationApplication {
+
+	public static void main(String[] args) {
+		SpringApplication.run(AuthorizationApplication.class, args);
+	}
+}
+
+4. JWTConfig
+public class JwtConfig {
+    @Value("${security.jwt.uri:/auth/**}")
+    private String Uri;
+
+    @Value("${security.jwt.header:Authorization}")
+    private String header;
+
+    @Value("${security.jwt.prefix:Bearer }")
+    private String prefix;
+
+    @Value("${security.jwt.expiration:#{24*60*60}}")
+    private int expiration;
+
+    @Value("${security.jwt.secret:JwtSecretKey}")
+    private String secret;
+
+	public String getUri() {
+		return Uri;
+	}
+
+	public void setUri(String uri) {
+		Uri = uri;
+	}
+
+	public String getHeader() {
+		return header;
+	}
+
+	public void setHeader(String header) {
+		this.header = header;
+	}
+
+	public String getPrefix() {
+		return prefix;
+	}
+
+	public void setPrefix(String prefix) {
+		this.prefix = prefix;
+	}
+
+	public int getExpiration() {
+		return expiration;
+	}
+
+	public void setExpiration(int expiration) {
+		this.expiration = expiration;
+	}
+
+	public String getSecret() {
+		return secret;
+	}
+
+	public void setSecret(String secret) {
+		this.secret = secret;
+	}
+    
+}
+5. JwtUsernameAndPasswordAuthenticationFilter
+
+public class JwtUsernameAndPasswordAuthenticationFilter extends UsernamePasswordAuthenticationFilter   {
+	
+	// We use auth manager to validate the user credentials
+	private AuthenticationManager authManager;
+	
+	private final JwtConfig jwtConfig;
+    
+	public JwtUsernameAndPasswordAuthenticationFilter(AuthenticationManager authManager, JwtConfig jwtConfig) {
+		this.authManager = authManager;
+		this.jwtConfig = jwtConfig;
+		
+		// By default, UsernamePasswordAuthenticationFilter listens to "/login" path. 
+		// In our case, we use "/auth". So, we need to override the defaults.
+		this.setRequiresAuthenticationRequestMatcher(new AntPathRequestMatcher(jwtConfig.getUri(), "POST"));
+	}
+	
+	@Override
+	public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response)
+			throws AuthenticationException {
+		
+		try {
+			System.out.println("Auth Attempt");
+			
+			// 1. Get credentials from request
+			UserCredentials creds = new ObjectMapper().readValue(request.getInputStream(), UserCredentials.class);
+			
+			// 2. Create auth object (contains credentials) which will be used by auth manager
+			UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
+					creds.getUsername(), creds.getPassword(), Collections.emptyList());
+			
+			// 3. Authentication manager authenticate the user, and use UserDetialsServiceImpl::loadUserByUsername() method to load the user.
+			return authManager.authenticate(authToken);
+			
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+	}
+	
+	// Upon successful authentication, generate a token.
+	// The 'auth' passed to successfulAuthentication() is the current authenticated user.
+	@Override
+	protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain,
+			Authentication auth) throws IOException, ServletException {
+		
+		Long now = System.currentTimeMillis();
+		String token = Jwts.builder()
+			.setSubject(auth.getName())	
+			// Convert to list of strings. 
+			// This is important because it affects the way we get them back in the Gateway.
+			.claim("authorities", auth.getAuthorities().stream()
+				.map(GrantedAuthority::getAuthority).collect(Collectors.toList()))
+			.setIssuedAt(new Date(now))
+			.setExpiration(new Date(now + jwtConfig.getExpiration() * 1000))  // in milliseconds
+			.signWith(SignatureAlgorithm.HS512, jwtConfig.getSecret().getBytes())
+			.compact();
+		System.out.println("Token Generated  =====" + token.toString());
+
+		// Add token to header
+		response.addHeader(jwtConfig.getHeader(), jwtConfig.getPrefix() + token);
+	}
+	
+	// A (temporary) class just to represent the user credentials
+	private static class UserCredentials {
+	    public String getUsername() {
+			return username;
+		}
+
+		public void setUsername(String username) {
+			this.username = username;
+		}
+
+		public String getPassword() {
+			return password;
+		}
+
+		public void setPassword(String password) {
+			this.password = password;
+		}
+
+		private String username, password;
+	}
+}
+
+6. SecurityCredentialsConfig
+@EnableWebSecurity 	// Enable security config. This annotation denotes config for spring security.
+public class SecurityCredentialsConfig extends WebSecurityConfigurerAdapter {
+	
+	@Autowired
+	private UserDetailsService userDetailsService;
+
+	@Autowired
+	private JwtConfig jwtConfig;
+	
+	@Override
+	protected void configure(HttpSecurity http) throws Exception {
+		http
+		    .csrf().disable()
+		     // make sure we use stateless session; session won't be used to store user's state.
+	            .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+	        .and()
+	            // handle an authorized attempts 
+	            .exceptionHandling().authenticationEntryPoint((req, rsp, e) -> rsp.sendError(HttpServletResponse.SC_UNAUTHORIZED))
+	        .and()
+		    // Add a filter to validate user credentials and add token in the response header
+			
+		    // What's the authenticationManager()? 
+		    // An object provided by WebSecurityConfigurerAdapter, used to authenticate the user passing user's credentials
+		    // The filter needs this auth manager to authenticate the user.
+		    .addFilter(new JwtUsernameAndPasswordAuthenticationFilter(authenticationManager(), jwtConfig))	
+		.authorizeRequests()
+		    // allow all POST requests 
+		    .antMatchers(HttpMethod.POST, jwtConfig.getUri()).permitAll()
+		    // any other requests must be authenticated
+		    .anyRequest().authenticated();
+	}
+	
+	// Spring has UserDetailsService interface, which can be overriden to provide our implementation for fetching user from database (or any other source).
+	// The UserDetailsService object is used by the auth manager to load the user from database.
+	// In addition, we need to define the password encoder also. So, auth manager can compare and verify passwords.
+	@Override
+	protected void configure(AuthenticationManagerBuilder auth) throws Exception {
+		auth.userDetailsService(userDetailsService).passwordEncoder(passwordEncoder());
+	}
+	
+	@Bean
+	public JwtConfig jwtConfig() {
+        	return new JwtConfig();
+	}
+	
+	@Bean
+	public BCryptPasswordEncoder passwordEncoder() {
+	    return new BCryptPasswordEncoder();
+	}
+}
+
+7. UserDetailsServiceImpl
+
+@Service   // It has to be annotated with @Service.
+public class UserDetailsServiceImpl implements UserDetailsService  {
+	
+	@Autowired
+	private BCryptPasswordEncoder encoder;
+
+	@Override
+	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+		
+		// hard coding the users. All passwords must be encoded.
+		final List<AppUser> users = Arrays.asList(
+			new AppUser(1, "omar", encoder.encode("12345"), "USER"),
+			new AppUser(2, "admin", encoder.encode("12345"), "ADMIN")
+		);
+		
+
+		for(AppUser appUser: users) {
+			if(appUser.getUsername().equals(username)) {
+				
+				// Remember that Spring needs roles to be in this format: "ROLE_" + userRole (i.e. "ROLE_ADMIN")
+				// So, we need to set it to that format, so we can verify and compare roles (i.e. hasRole("ADMIN")).
+				List<GrantedAuthority> grantedAuthorities = AuthorityUtils
+		                	.commaSeparatedStringToAuthorityList("ROLE_" + appUser.getRole());
+				
+				// The "User" class is provided by Spring and represents a model class for user to be returned by UserDetailsService
+				// And used by auth manager to verify and check user authentication.
+				return new User(appUser.getUsername(), appUser.getPassword(), grantedAuthorities);
+			}
+		}
+		
+		// If user not found. Throw this exception.
+		throw new UsernameNotFoundException("Username: " + username + " not found");
+	}
+	
+	// A (temporary) class represent the user saved in the database.
+	private static class AppUser {
+		private Integer id;
+	    	private String username, password;
+	    	private String role;
+	    
+		public AppUser(Integer id, String username, String password, String role) {
+	    		this.id = id;
+	    		this.username = username;
+	    		this.password = password;
+	    		this.role = role;
+	    	}
+
+		public Integer getId() {
+			return id;
+		}
+
+		public void setId(Integer id) {
+			this.id = id;
+		}
+
+		public String getUsername() {
+			return username;
+		}
+
+		public void setUsername(String username) {
+			this.username = username;
+		}
+
+		public String getPassword() {
+			return password;
+		}
+
+		public void setPassword(String password) {
+			this.password = password;
+		}
+
+		public String getRole() {
+			return role;
+		}
+
+		public void setRole(String role) {
+			this.role = role;
+		}
+
+	}
+}
+------------------------------------End Authoriztion Server----------------------------------------------------------
+
+2. GatwayService
+pom.xml
+----------------
+<dependencies>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-web</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.cloud</groupId>
+			<artifactId>spring-cloud-starter-netflix-zuul</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-devtools</artifactId>
+			<scope>runtime</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+			 <dependency>
+		 <groupId>org.springframework.cloud</groupId>
+		 <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
+	 </dependency>
+	 <dependency>
+		 <groupId>org.springframework.boot</groupId>
+		 <artifactId>spring-boot-starter-security</artifactId>
+	 </dependency>
+	 <dependency>
+		 <groupId>io.jsonwebtoken</groupId>
+		 <artifactId>jjwt</artifactId>
+		 <version>0.9.0</version>
+	 </dependency>
+	 <dependency>
+		 <groupId>org.springframework.boot</groupId>
+		 <artifactId>spring-boot-devtools</artifactId>
+		 <optional>true</optional>
+</dependency>
+	</dependencies>
+
+2.  application.properties
+server.port=8762
+spring.security.user.name=admin
+spring.security.user.password=root
+spring.application.name=zuul-server
+eureka.client.service-url.default-zone=http://localhost:8761/eureka/
+
+# A prefix that can added to beginning of all requests. 
+#zuul.prefix=/api
+
+# Disable accessing services using service name (i.e. gallery-service).
+# They should be only accessed through the path defined below.
+zuul.ignored-services=*
+
+# Map paths to services
+zuul.routes.gallery-service.path=/gallery/**
+zuul.routes.gallery-service.service-id=gallery-service
+
+zuul.routes.auth-service.path=/auth/**
+zuul.routes.auth-service.service-id=AUTH-SERVICE
+
+zuul.routes.auth-service.strip-prefix=false
+
+zuul.routes.auth-service.sensitive-headers=Cookie,Set-Cookie 
+
+3. GatewayApplication
+@SpringBootApplication
+@EnableEurekaClient 		// It acts as a eureka client
+@EnableZuulProxy	
+public class GatewayApplication {
+
+	public static void main(String[] args) {
+		SpringApplication.run(GatewayApplication.class, args);
+	}
+}
+
+4. JwtConfig
+package com.security.gateway;
+
+import org.springframework.beans.factory.annotation.Value;
+
+public class JwtConfig {
+    @Value("${security.jwt.uri:/auth/**}")
+    private String Uri;
+
+    @Value("${security.jwt.header:Authorization}")
+    private String header;
+
+    @Value("${security.jwt.prefix:Bearer }")
+    private String prefix;
+
+    @Value("${security.jwt.expiration:#{24*60*60}}")
+    private int expiration;
+
+    @Value("${security.jwt.secret:JwtSecretKey}")
+    private String secret;
+
+	public String getUri() {
+		return Uri;
+	}
+
+	public void setUri(String uri) {
+		Uri = uri;
+	}
+
+	public String getHeader() {
+		return header;
+	}
+
+	public void setHeader(String header) {
+		this.header = header;
+	}
+
+	public String getPrefix() {
+		return prefix;
+	}
+
+	public void setPrefix(String prefix) {
+		this.prefix = prefix;
+	}
+
+	public int getExpiration() {
+		return expiration;
+	}
+
+	public void setExpiration(int expiration) {
+		this.expiration = expiration;
+	}
+
+	public String getSecret() {
+		return secret;
+	}
+
+	public void setSecret(String secret) {
+		this.secret = secret;
+	}
+
+}
+5. JwtTokenAuthenticationFilter
+package com.security.gateway;
+import java.io.IOException;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import javax.servlet.FilterChain;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.filter.OncePerRequestFilter;
+
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jwts;
+
+public class JwtTokenAuthenticationFilter extends  OncePerRequestFilter {
+    
+	private final JwtConfig jwtConfig;
+	
+	public JwtTokenAuthenticationFilter(JwtConfig jwtConfig) {
+		this.jwtConfig = jwtConfig;
+	}
+
+	@Override
+	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
+			throws ServletException, IOException {
+		
+		// 1. get the authentication header. Tokens are supposed to be passed in the authentication header
+		String header = request.getHeader(jwtConfig.getHeader());
+		
+		// 2. validate the header and check the prefix
+		if(header == null || !header.startsWith(jwtConfig.getPrefix())) {
+			chain.doFilter(request, response);  		// If not valid, go to the next filter.
+			return;
+		}
+		
+		// If there is no token provided and hence the user won't be authenticated. 
+		// It's Ok. Maybe the user accessing a public path or asking for a token.
+		
+		// All secured paths that needs a token are already defined and secured in config class.
+		// And If user tried to access without access token, then he won't be authenticated and an exception will be thrown.
+		
+		// 3. Get the token
+		String token = header.replace(jwtConfig.getPrefix(), "");
+		
+		try {	// exceptions might be thrown in creating the claims if for example the token is expired
+			
+			// 4. Validate the token
+			Claims claims = Jwts.parser()
+					.setSigningKey(jwtConfig.getSecret().getBytes())
+					.parseClaimsJws(token)
+					.getBody();
+			
+			String username = claims.getSubject();
+			if(username != null) {
+				@SuppressWarnings("unchecked")
+				List<String> authorities = (List<String>) claims.get("authorities");
+				
+				// 5. Create auth object
+				// UsernamePasswordAuthenticationToken: A built-in object, used by spring to represent the current authenticated / being authenticated user.
+				// It needs a list of authorities, which has type of GrantedAuthority interface, where SimpleGrantedAuthority is an implementation of that interface
+				 UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
+								 username, null, authorities.stream().map(SimpleGrantedAuthority::new).collect(Collectors.toList()));
+				 
+				 // 6. Authenticate the user
+				 // Now, user is authenticated
+				 SecurityContextHolder.getContext().setAuthentication(auth);
+			}
+			
+		} catch (Exception e) {
+			// In case of failure. Make sure it's clear; so guarantee user won't be authenticated
+			SecurityContextHolder.clearContext();
+		}
+		
+		// go to the next filter in the filter chain
+		chain.doFilter(request, response);
+	}
+
+}
+
+6. SecurityTokenConfig
+package com.security.gateway;
+import javax.servlet.http.HttpServletResponse;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
+import org.springframework.http.HttpMethod;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+
+@EnableWebSecurity 	// Enable security config. This annotation denotes config for spring security.
+public class SecurityTokenConfig extends WebSecurityConfigurerAdapter {
+	@Autowired
+	private JwtConfig jwtConfig;
+ 
+	@Override
+  	protected void configure(HttpSecurity http) throws Exception {
+    	   http
+		.csrf().disable()
+		    // make sure we use stateless session; session won't be used to store user's state.
+	 	    .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS) 	
+		.and()
+		    // handle an authorized attempts 
+		    .exceptionHandling().authenticationEntryPoint((req, rsp, e) -> rsp.sendError(HttpServletResponse.SC_UNAUTHORIZED)) 	
+		.and()
+		   // Add a filter to validate the tokens with every request
+		   .addFilterAfter(new JwtTokenAuthenticationFilter(jwtConfig), UsernamePasswordAuthenticationFilter.class)
+		// authorization requests config
+		.authorizeRequests()
+		   // allow all who are accessing "auth" service
+		   .antMatchers(HttpMethod.POST, jwtConfig.getUri()).permitAll()  
+		   // must be an admin if trying to access admin area (authentication is also required here)
+		   .antMatchers("/gallery" + "/admin/**").hasRole("ADMIN")
+		   // Any other request must be authenticated
+		   .anyRequest().authenticated(); 
+	}
+	
+	@Bean
+  	public JwtConfig jwtConfig() {
+    	   return new JwtConfig();
+  	}
+}
+
+-----------------------------------End of Gateway Service ---------------------------------
+
+1. Gallery service
+pom.xml
+----------
+<dependencies>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-web</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-devtools</artifactId>
+			<scope>runtime</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+		 	<groupId>org.springframework.cloud</groupId>
+		 	<artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
+			 <version>2.0.1.RELEASE</version>
+	 	</dependency>
+		 <dependency>
+		 <groupId>org.springframework.boot</groupId>
+		 <artifactId>spring-boot-starter-data-rest</artifactId>
+		</dependency>
+	</dependencies>
+	
+2. application.properties
+spring.application.name=gallery-service
+server.port=8100
+eureka.client.service-url.default-zone=http://localhost:8761/eureka
+3. 
+@SpringBootApplication
+@EnableEurekaClient 		// Enable eureka client.
+public class GalleryApplication {
+
+	public static void main(String[] args) {
+		SpringApplication.run(GalleryApplication.class, args);
+	}
+}
+
+@Configuration
+class RestTemplateConfig {
+	
+	// Create a bean for restTemplate to call services
+	@Bean
+	@LoadBalanced		// Load balance between service instances running at different ports.
+	public RestTemplate restTemplate() {
+	    return new RestTemplate();
+	}
+}
+
+4. 
+package com.security.gallery.controllers;
+
+import java.util.List;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.client.RestTemplate;
+
+import com.security.gallery.entities.Gallery;
+
+@RestController
+@RequestMapping("/")
+public class GalleryController {
+	@Autowired
+	private RestTemplate restTemplate;
+	
+	@Autowired
+	private Environment env;
+	
+	@RequestMapping("/")
+	public String home() {
+		// This is useful for debugging
+		// When having multiple instance of gallery service running at different ports.
+		// We load balance among them, and display which instance received the request.
+		return "Hello from Gallery Service running at port: " + env.getProperty("local.server.port");
+	}
+  
+	@RequestMapping("/{id}")
+	public String getGallery(@PathVariable final int id) {
+		// create gallery object
+		Gallery gallery = new Gallery();
+		gallery.setId(id);
+		
+		// get list of available images 
+		List<Object> images = restTemplate.getForObject("http://image-service/images/", List.class);
+		gallery.setImages(images);
+	
+		return gallery.toString();
+	}
+	
+	// -------- Admin Area --------
+	// This method should only be accessed by users with role of 'admin'
+	// We'll add the logic of role based auth later
+	@RequestMapping("/admin")
+	public String homeAdmin() {
+		return "This is the admin area of Gallery service running at port: " + env.getProperty("local.server.port");
+	}
+}
+
+5. 
+package com.security.gallery.entities;
+
+import java.util.List;
+
+public class Gallery {
+	private int id;
+	private List<Object> images;
+	public List<Object> getImages() {
+		return images;
+	}
+
+	public void setImages(List<Object> images) {
+		this.images = images;
+	}
+
+	public int getId() {
+		return id;
+	}
+
+	public void setId(int id) {
+		this.id = id;
+	}
+}
+
+	
+
+	
+
+
+
+
+
+

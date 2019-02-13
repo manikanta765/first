@@ -1,0 +1,1002 @@
+We can prevent(stop) a Thread execution by using the following methods.
+1. yield()
+2. join()
+3. sleep()
+
+yield(): 
+1. Yield() method causes to pause the current execution thread and giving the chance of remaining waiting threads of same priority.
+2. If all waiting threads are low priority or if there is no waiting threads then the same thread will be continued.
+3. If several waiting threads with same priority available then we can't expect exact which thread will get chance for execution.
+4. The thread which is yielded when it get chance once again for execution it depends on mercy of the thread sheduler.
+
+public class ThreadYieldDemo {
+
+	public static void main(String[] args) {
+
+		
+		Mythread thread = new Mythread();
+		thread.start();
+		for(int i=0;i<5;i++) {
+			System.out.println("Main thread");
+		}
+	}
+
+}
+
+class Mythread extends Thread{
+	
+	@Override
+	public void run() {
+		for(int i=0;i<5;i++) {
+			Thread.yield();
+			System.out.println("Child Thread");
+		}
+	}
+}
+
+
+join():-
+1. If a thread wants to wait() until completing some other thread then we should go for join() method.
+example:
+If a Thread  t1 executes t2.join() then t1 should go for waiting state until completing t2.
+
+public class Threadjoindemo {
+
+	public static void main(String[] args) throws InterruptedException {
+
+		Mythred1 t1 = new Mythred1();
+		t1.start();
+		t1.join();
+		for(int i=0;i<5;i++) {
+			System.out.println("Rama thread.");
+		}
+	}
+
+}
+class Mythred1 extends Thread{
+	
+	@Override
+	public void run() {
+
+		for(int i=0;i<5;i++) {
+			System.out.println("seetha thread");
+			try {
+				Thread.sleep(2000);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+		}
+	}
+	
+}
+
+If a thread calls notify() on any object , it releases the lock of that object but may not immediately.
+Except wait,notify,notifyall there is no other method where thread releases the lock.
+Which of the following is valid
+1. If a thread calls wait() immediately it will entered into waiting state with out releasing any lock invalid
+2. If a thread calls wait() it releases the lock of that object,but may not immediately invalid
+3. If a thread calls wait() on any object it releases all locks acquired by that thread and immediately entered into waiting state invalid.
+4. If a thread calls wait() on any object it immediately releases the lock of that particular object and entered into waiting state. valid
+5. If a thread calls notify() on any object it immediately relases the lock of that particular object invalid.
+6. If a thread calls notify() on any object it releases the lock of that object , but may not immediately  valid.
+
+
+Inter thread communication:--
+------------------
+Synchronized threads to communicate to each other
+
+
+public class BankAccount {
+	
+	private int amount=10000;
+	
+	synchronized void withdraw(int amount){
+		
+		System.out.println("Going to withdraw.....");
+		if(this.amount < amount){
+			System.out.println("Less balance,waiting for deposit....");
+			try{
+				wait();
+			}catch(Exception e)
+			{
+				e.printStackTrace();
+			}
+		}
+		this.amount -= amount;
+		System.out.println("Withdraw completed...");
+		
+	}
+
+	synchronized void deposit(int amount){
+		System.out.println("Going to deposit");
+		this.amount +=amount;
+		System.out.println("deposit completed..");
+		notify();
+	}
+}
+public class Sample {
+
+	
+	public static void main(String[] args) {
+
+		final BankAccount bankAccount =  new BankAccount();
+		new Thread("Thread 1"){
+			public void run() {
+				bankAccount.withdraw(50000);
+			};
+		}.start();
+		
+		new Thread("Thread 2"){
+			public void run() {
+				bankAccount.deposit(80000);
+			};
+		}.start();
+	}
+
+}
+2. 
+public class InterThreadCommunication {
+
+	public static void main(String[] args) throws InterruptedException {
+	
+		
+		ThreadA t1= new ThreadA();
+		t1.start();
+		
+		synchronized (t1) {
+			
+			System.out.println("main thread calling wait method");
+			t1.wait();
+			System.out.println("main thread got notification");
+			System.out.println(t1.total);
+		}
+	}
+}
+
+class ThreadA extends Thread{
+
+	int total=0;
+	
+	@Override
+	public void run() {
+		synchronized (this) {
+			
+			System.out.println("Child thread starts caliculating.");
+			
+			for(int i=1;i<=10;i++) {
+				total =total+i;
+			}
+			System.out.println("child thread giving notification");
+			this.notify();
+		}
+	}
+}
+2. program
+
+public class Producer extends Thread {
+	
+	
+	List<Integer> list = null;
+
+	public Producer(List<Integer> list) {
+		super();
+		this.list = list;
+	}
+	
+	@Override
+	public void run() {
+
+		try {
+			
+			synchronized (list) {
+				
+				while(true) {
+					
+					if(list.size() > 0) {
+						list.wait();
+					}
+					else {
+						produceItem();
+					}
+				}
+			}
+		}catch(InterruptedException e) {
+			e.printStackTrace();
+		}
+		
+	}
+	
+	
+	private void produceItem() throws InterruptedException {
+		
+		for(int i=0;i<=5;i++) {
+			Thread.sleep(1000);
+			list.add(i);
+			System.out.println("Added element in list by producer ...."+i);
+		}
+			list.notifyAll();
+		
+	}
+}
+
+public class Consumer extends Thread{
+
+	
+	List<Integer> list;
+	
+	public Consumer(List<Integer> list) {
+		this.list = list;
+	}
+	
+	
+	@Override
+	public void run() {
+	
+	    try {
+	    	
+	    	
+	    	while(true) {
+	    		
+	    		synchronized (list) {
+					
+	    			if(list.size() ==0) {
+	    				list.wait();
+	    			}
+	    			else {
+	    				consumeItem();
+	    			}
+				}
+	    	}
+	    }catch(InterruptedException e) {
+	    	e.printStackTrace();
+	    }
+	    
+		
+	}
+	
+	
+	
+	
+	private void consumeItem() throws InterruptedException {
+		while(!list.isEmpty()) {
+			Thread.sleep(1000);
+			System.out.println("removed element from list by consumer = "+list.remove(0));
+		}
+		
+		list.notifyAll();
+	}
+	
+}
+
+public class ProducerConsumerDemo {
+
+	public static void main(String[] args) {
+
+		
+		
+		List<Integer> list = new ArrayList<Integer>();
+		
+		Producer producer = new Producer(list);
+		Consumer consumer = new Consumer(list);
+		
+		producer.start();
+		consumer.start();
+	}
+
+}
+
+
+Locks:--
+---------------
+ReentrantLock:-- It is the implementation class of Lock interface and it is the direct child class of object.
+                 Reentrant means a thread can acquire same lock multiple times without any issue.
+		 internally reentrant lock increments threads personal count whenever we called lock method and
+		 decrements count value whenever thread calls unlock() and lock will be released, whenever count reaches 
+		 zero.
+Constructors:--
+---------------- ReentrantLock l = new ReentrantLock();
+                creates an instance of reentrant lock .
+	    2.  ReentrantLock l = new ReentrantLock(boolean fairness); creates reentrant lock with given fairness policy 
+	        it the fairness is true then longest waiting thread can acquire the lock if it is available i.e it follows
+		First come first serve policy, if fairness is false then which waiting thread will get the chance we cant 
+		expect.
+		The default value for fairness is False.
+		which of the folloing declarations are equal.
+		ReentrantLock l = new ReentranctLock();
+		ReentrantLock l2 = new ReentranctLock(true);
+		ReentrantLock l3 = new ReentranctLock(false); 
+		All the above if 1 and l3 rd are equal
+		
+		Important methods of ReentrantLock:--
+		void lock()
+		boolean trylock()
+		boolean trylock(Long l,TimeUnit t)
+		void lockinterruptibly()
+		void unlock()
+		
+
+public class ReentrantLockDemo {
+
+	public static void main(String[] args) {
+		Display d = new Display();
+		Mythread t1 = new Mythread(d, "muthu");
+		Mythread t2 = new Mythread(d, "raju");
+		Mythread t3 = new Mythread(d, "dakshith");
+
+		t1.start();
+		t2.start();
+		t3.start();
+	}
+}
+
+class Mythread extends Thread{
+	
+	Display d;
+	String name;
+	
+	public Mythread(Display d,String name) {
+		this.d = d;
+		this.name = name;
+	}
+	
+	public void run() {
+		d.wish(name);
+	}
+}
+
+
+
+class Display {
+
+	ReentrantLock lock = new ReentrantLock();
+	
+	public  void wish(String name) {
+		
+		lock.lock(); ------> line 1
+		
+		for(int i=0;i<5;i++) {
+			
+			System.out.print("Good Morning :");
+            
+			try {
+				Thread.sleep(2000);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+			
+			System.out.println(name);
+		}
+		lock.unlock(); -----> line 2
+	}
+}	
+
+If we comment line 1 and line2 then the thread will be executed simuntaneously and we will get irregular output.
+If we are not commenting lines1 and 2 then threads will be executed one by one and we will get regular output.
+	   
+-----------------------------------
+
+public class SynchronizedDemo {
+
+	public static void main(String[] args) {
+		Display d = new Display();
+		Mythread t1 = new Mythread(d, "muthu");
+		Mythread t2 = new Mythread(d, "raju");
+		Mythread t3 = new Mythread(d, "dakshith");
+
+		t1.start();
+		t2.start();
+		t3.start();
+	}
+}
+
+class Mythread extends Thread{
+	
+	Display d;
+	String name;
+	
+	public Mythread(Display d,String name) {
+		this.d = d;
+		this.name = name;
+	}
+	
+	public void run() {
+		d.wish(name);
+	}
+}
+
+
+
+class Display {
+
+	public  synchronized void wish(String name) {
+		
+		for(int i=0;i<5;i++) {
+			
+			System.out.print("Good Morning :");
+            
+			try {
+				Thread.sleep(2000);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+			
+			System.out.println(name);
+		}
+		
+	}
+}
+
+Demo of trylock():---
+--------------------
+class Mythread3 extends Thread{
+	
+	static ReentrantLock l = new ReentrantLock();
+	
+	public Mythread3(String name) {
+		super(name);
+		
+	}
+	
+	@Override
+	public void run() {
+		
+		if(l.tryLock()) {
+			System.out.println(Thread.currentThread().getName()+",,,,,,got lock performing safe operations.");
+			
+			try {
+				Thread.sleep(2000);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+			l.unlock();
+		}else {
+			System.out.println(Thread.currentThread().getName()+",,,,,,unable to get lock and hence performing alternative  operations.");
+		}
+	}
+	
+}
+
+
+public class TrylockDemo {
+
+	public static void main(String[] args) {
+		
+		Mythread3 t1 = new Mythread3("First thread");
+		Mythread3 t2 = new Mythread3("Second thread");
+		
+		t1.start();
+		t2.start();
+		
+	}
+}
+
+trylock with time period:--
+---------------------------
+public class TrylockwithTimeperiod {
+
+	public static void main(String[] args) {
+
+		Mythread4 t1 = new Mythread4("First thread");
+		Mythread4 t2 = new Mythread4("Second thread");
+		
+		t1.start();
+		t2.start();
+	}
+
+}
+
+class Mythread4 extends Thread{
+	
+	static ReentrantLock l = new ReentrantLock();
+	
+	Mythread4(String name){
+		super(name);
+	}
+	
+	@Override
+	public void run() {
+
+		do {
+			
+		try{
+			if(l.tryLock(5000, TimeUnit.MILLISECONDS)) {
+				System.out.println(Thread.currentThread().getName()+"..got lock");
+				
+				Thread.sleep(30000);
+				l.unlock();
+				
+				System.out.println(Thread.currentThread().getName()+"..releases lock");
+				break;
+			}else {
+				System.out.println(Thread.currentThread().getName()+"..unable to get lock  and will try again");
+			}
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+			
+		}while(true);
+	}
+	
+}
+
+Executor Framework:--
+----------------------
+Creating a new thread for every job may creates performance and memory problems. we should go for thread pool.
+Thread pool is a pool of already created threads, ready to do our job.
+Java 1.5 version introduces thread pool framework to implement thread pools.
+Thread pool framework also knows as executor framework.
+We can create a thread pool as follows 
+
+ExecutorService service = Executors.newFixedThreadPool(3);
+
+we can submit a runnable job by using submit method.
+
+service.submit(job);
+
+we can shutdown executorservice by using service.shutdown();
+
+public class ExecutorServiceDemo {
+
+	
+	public static void main(String[] args) {
+		
+		Printjob[] jobs= {
+				          new Printjob("Muthu"),
+				          new Printjob("Raju"),
+				          new Printjob("Dakshith"),
+				          new Printjob("Krishna"),
+				          new Printjob("Mamatha"),
+						 };
+		
+		ExecutorService service = Executors.newFixedThreadPool(2);
+		
+		for(Printjob job:jobs) {
+			service.submit(job);
+		}
+		service.shutdown();
+	}
+}
+
+class Printjob implements Runnable{
+	
+	String name;
+	
+	Printjob(String name){
+		this.name = name;
+	}
+
+	@Override
+	public void run() {
+
+		System.out.println(name+"...Job Started by Thread:"+Thread.currentThread().getName());
+		
+		try {
+			Thread.sleep(2000);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+		System.out.println(name+"...Job Completed by Thread:"+Thread.currentThread().getName());
+	}
+	
+	
+}
+
+In the above example 3 threads are responsible to execute 6 jobs
+so that a single thread can be reused for multiple jobs.
+While designing webservers and appliction servers we can use thread pool concept.
+
+wait(),notify(),notifyall() are present in object class not in thread class, because thread can call theses methods on any
+java object.
+To call wait(),notify(),notifyall() methods on any object,thread should be owner of that object,i.e the thread should has
+lock of that object.i.e the thread should be inside synchronized area.
+Hence we can call wait(),notify(),notifyall() only from synchronized area otherwise we will get runtime exception,
+saying illegalmonitorstate exception.
+
+If a thread calls wait() method on any object,it immediately relaeses the lock of that particular object and entered into
+waiting state.
+
+CountDownlatch:--
+CountDownlatch is advanced type of synchronization.
+Here all threads as to wait for complete their tasks.
+Once latch count is zero,we cant reuse the countdownlatch.
+For example 
+ where a Organziation needs to recruite 3 Java Developers.
+ For this HR Manager has asked 3 Tech Leads to take interview.
+ The HR Manager wants to distribute the Offer letter only after all the 3 Java Developers have been recruited
+ In Threading terminology the HR Manger should wait till 3 Java Developers have been recruited.
+
+1.
+ import java.util.concurrent.CountDownLatch;
+public class TechLead extends Thread{
+
+ CountDownLatch countDownLatch;
+ public TechLead(CountDownLatch countDownLatch,String name){
+  super(name);
+  this.countDownLatch=countDownLatch;
+  
+ }
+ 
+ @Override
+ public void run() {
+  try {
+   
+   Thread.sleep(2000);
+  } catch (InterruptedException e) {
+   // TODO Auto-generated catch block
+   e.printStackTrace();
+  }
+  // TODO Auto-generated method stub
+  System.out.println(Thread.currentThread().getName()+" : recruted");
+  
+  countDownLatch.countDown();
+ }
+
+}
+
+import java.util.concurrent.CountDownLatch;
+
+
+public class HRManager {
+ 
+ public static void main(String args[]){
+  CountDownLatch countDownLatch = new CountDownLatch(3);
+  
+  TechLead techLead1 = new TechLead(countDownLatch,"first");
+  TechLead techLead2 = new TechLead(countDownLatch,"second");
+  TechLead techLead3 = new TechLead(countDownLatch,"third");
+  
+  
+  techLead1.start();
+  techLead2.start();
+  techLead3.start();
+  
+  try {
+   System.out.println("HR Manager waiting for recruitment to complete...");
+   
+   countDownLatch.await();
+   
+   System.out.println("Distribute Offer Letter");
+  } catch (InterruptedException e) {
+   e.printStackTrace();
+  }
+ }
+}
+
+2.
+package prac;
+
+import java.util.concurrent.CountDownLatch;
+
+public class DevTeam extends Thread{
+
+	private CountDownLatch countDownLatch;
+	
+	public DevTeam(CountDownLatch countDownLatch,String name) {
+		super(name);
+		this.countDownLatch = countDownLatch;
+	}
+	
+	@Override
+	public void run() {
+		
+		System.out.println("Task assigned to development team "+Thread.currentThread().getName());
+		
+		try {
+			Thread.sleep(2000);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+		
+		System.out.println("Task finished by development team "+Thread.currentThread().getName());
+		
+		// Each thread calls countDown() method on task completion.
+		countDownLatch.countDown();
+	}
+	
+}
+package prac;
+
+import java.util.concurrent.CountDownLatch;
+
+public class AssignTaskManagerTest {
+
+	public static void main(String[] args) throws InterruptedException {
+
+		//created countdownlatch for 2 threads
+		CountDownLatch latch = new CountDownLatch(2);
+		
+		//created and started two threads
+		DevTeam teamA = new DevTeam(latch, "dev-A");
+		DevTeam teamB = new DevTeam(latch, "dev-B");
+		
+		teamA.start();
+		teamB.start();
+		
+		//when two threads(dev-A and dev-B)completed tasks are returned
+		latch.await();
+		
+		//Now execution of thread(QA team) started.
+		QATeam qateam = new QATeam("QA Team");
+		qateam.start();
+		
+		
+	}
+
+}
+package prac;
+
+public class QATeam extends Thread{
+	
+	public QATeam(String name) {
+		super(name);
+	}
+	
+	@Override
+	public void run() {
+		
+		System.out.println("Task assigned to "+Thread.currentThread().getName());
+		
+		try {
+			Thread.sleep(2000);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+		
+		System.out.println("Task finished by "+Thread.currentThread().getName());
+	}
+
+}
+
+CyclicBarrier:--
+Number of threads want to communicate with each other and want to wait common point.
+If barrier count zero, it will reusable the barrier.
+1.
+package prac;
+
+import java.util.concurrent.BrokenBarrierException;
+import java.util.concurrent.CyclicBarrier;
+
+public class PassengerThread extends Thread{
+
+	private int duration;
+	private CyclicBarrier cyclicBarrier;
+	
+	public PassengerThread(int duration,CyclicBarrier cyclicBarrier,String name) {
+		super(name);
+		this.duration=duration;
+		this.cyclicBarrier=cyclicBarrier;
+	}
+	
+	
+	@Override
+	public void run() {
+		
+		try {
+			Thread.sleep(2000);
+			
+			System.out.println(Thread.currentThread().getName() + " is arrived.");
+			try {
+				int await = cyclicBarrier.await(); // here all threads reaches barrier if barrier count zero it will goes to execute.
+				if(await == 0) {
+					System.out.println("Four passengers have arrived so cab is going to start.");
+					
+				}
+			} catch (BrokenBarrierException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+	}
+}
+
+2. 
+package prac;
+
+import java.util.concurrent.CyclicBarrier;
+
+public class BarrierTest {
+
+	public static void main(String[] args) {
+
+		
+		System.out.println(Thread.currentThread().getName() + " has started");
+		
+		CyclicBarrier barrier = new CyclicBarrier(4);
+		
+		PassengerThread p1 = new PassengerThread(1000, barrier, "a");
+		PassengerThread p2 = new PassengerThread(2000, barrier, "b");
+		PassengerThread p3 = new PassengerThread(3000, barrier, "c");
+		PassengerThread p4 = new PassengerThread(4000, barrier, "d");
+		
+		
+		PassengerThread p5 = new PassengerThread(1000, barrier, "one");
+		PassengerThread p6 = new PassengerThread(2000, barrier, "two");
+		PassengerThread p7 = new PassengerThread(3000, barrier, "three");
+		PassengerThread p8 = new PassengerThread(4000, barrier, "four");
+		
+		p1.start();
+		p2.start();
+		p3.start();
+		p4.start();
+		
+		
+		p5.start();
+		p6.start();
+		p7.start();
+		p8.start();
+		
+		System.out.println(Thread.currentThread().getName() + " has finished");
+	}
+
+}
+
+
+Producer and Cousumer threads(Inter thread Communication):-
+----
+package prac;
+
+import java.util.List;
+
+public class Producer extends Thread {
+
+	
+	List<Integer> list;
+	
+	public Producer(List<Integer> list) {
+		this.list = list ;
+	}
+	
+	@Override
+	public void run() {
+
+		try {
+			synchronized (list) {
+				while (true) {
+					if (list.size() > 0)
+						list.wait();
+					else
+						produceItem();
+				}
+			}
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+	}
+			
+	private void produceItem() throws InterruptedException {
+		
+		for(int i=1; i<=5; i++) {
+			
+			Thread.sleep(2000);
+			
+			list.add(i);
+			
+			System.out.println("Added element in list by producer =" + i);
+		}
+		
+		list.notifyAll();
+	}
+}
+
+2.
+package prac;
+
+import java.util.List;
+
+public class Consumer extends Thread{
+
+	
+	List<Integer> list;
+	
+	public Consumer(List<Integer> list) {
+		this.list = list;
+	}
+	
+	@Override
+	public void run() {
+
+		try {
+			while (true) {
+				synchronized (list) {
+
+					if (list.size() == 0)
+						list.wait();
+					else
+
+						consume();
+				}
+			}
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+	}
+		
+	
+	
+	private void consume() throws InterruptedException {
+		while(!list.isEmpty()) {
+			Thread.sleep(2000);
+			System.out.println("Removed element from list by consumer = "+list.remove(0));
+		}
+		list.notifyAll();
+	}
+	
+	
+	
+}
+3.
+package prac;
+
+import java.util.ArrayList;
+import java.util.List;
+
+public class ProducerConsumerDemo {
+
+	public static void main(String[] args) {
+
+		
+		List<Integer> list = new ArrayList<>();
+		
+		Producer producer = new Producer(list);
+		Consumer consumer = new Consumer(list);
+		
+		producer.start();
+		consumer.start();
+	}
+
+}
+----------------------------------------------------------------------------------------------------------------------------------------
+
+------------------------------Print Even or Odd Numbers---------------------------------------------------------------------------------
+public class TreadDemo2 {
+
+    public static void main(String[] args) {
+
+        ThreadD t = new ThreadD();
+        Thread t1 = new Thread(t);
+        Thread t2 = new Thread(t);
+        t1.start();
+        t2.start();
+
+    }
+}
+
+class ThreadD implements Runnable{
+
+    private static boolean evenFlag =true;
+
+    public synchronized void run(){
+
+        if(evenFlag == true){
+            printEven();
+        }else{
+            printOdd();
+        }
+    }
+
+    public void printEven(){
+
+        for(int i=0;i <=10; i += 2){
+            System.out.println(i+" "+Thread.currentThread());
+
+        }
+        evenFlag=false;
+    }
+
+    public void printOdd(){
+
+        for(int i=1;i <=10; i += 2){
+            System.out.println(i+" "+Thread.currentThread());
+
+        }
+        evenFlag=true;
+    }
+}
+
+
+

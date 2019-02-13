@@ -1,0 +1,224 @@
+Microservices are small, autonomous services that work together
+Each mircroservices runs in its own process
+Communicates with ligth weight mechanisms using HTTP, REST Call
+Microservice is a loosely coupled services.
+It is a new way to create business application, where the applications are broken down into smaller, independent services,that are not dependent upon a specific coding language.
+
+Microservice architecture : 
+
+Microservice architecture is an approach of building large enterprise application with multiple 
+small unit called service.
+
+
+
+
+
+
+Advantages of Microservices:--
+ Independent Releasability: Better Sacling
+Resilience ( if one services goes down, remaining services are up)
+Technology Heterogeneity
+Ease of Migration
+1. Each service develop ,deploy and test individually.
+2. Each service intercommunication with a common communication protocol like REST web service with JSON.
+3. Each service run individually either in single machine or different machine but they execute
+its own seperate process.
+4. Each service may have own database or storage system or they can share common databases
+or storage system
+5. servcies are not dependent upon a specific coding language.
+
+Features of Microservices
+
+1. Exposed as Rest
+2. Small deployable units
+3.  Cloud enabled
+
+
+Microservices Deployment Pattern
+
+Request/Response(synchronous)
+Event-Driven (asynchronous) scalable using message broker
+
+Testing Microservcies
+
+Pure Services: Being pure, behavior is very predictable
+                       Can be tested exhaustively
+
+Impure Services:  Un predictable , due to external state
+                             
+
+
+
+Cloud enabled means can have multiple instances for based on load dynamic scaleup and scale down.
+
+Drawbacks  of Microservices:--
+
+Complexity of developing a distributed system
+Implementing inter-process communication
+Handling partial failures
+Complexity of implementing business transactions that span multiple databases (with out 2PC)
+Complexity of testing a distributed system
+Complexity of developing and operating a distributed system
+
+
+Design patterns in Microservices:
+
+Domain Driven Design pattern:  
+Domain Driven Design is a way of looking at software from top down.
+When we are developing a software our focus shouldn’t be primarily on technology, it should be primarily on business or whatever activity we are trying to assist with the software domain.
+Specifically we approach that by trying to develop models of that domain and make our software confirmed to that.
+
+DDD gives two tools for solving problems
+
+ Strategic design tools
+  Tactical Desing tools
+
+
+
+
+Event Driven Microservics:
+
+Event occurs when a change happens in system
+All listeners get notified of the event, some take action
+Highly distributed/extremely loose coupled architecture
+Often used for asynchronous flows of work/information
+
+Event Sourcing
+
+ Modeling state changes as sequence of events
+Storing the event that could trigger the state change
+Enables rolling back to particular time in history
+
+     
+
+
+Spring cloud:--
+Spring cloud provides tools for development to quickly build distributed system.(eg. Configuration management,servicy discovery,circuit breakers, intelligent routing,micro-proxy,distributed sessions,cluster,state).
+
+Spring cloud Netflix(Netflix OSS components)
+
+
+Components Name
+ Usage
+Netflix Eureka
+ Service Registration and Discovery
+Netflix Ribbon
+ Dynamic Routing and Load Balancer
+Netflix Zuul 
+ Edge/proxy/Gateway Server
+Netflix Feign
+REST Client
+Netflix Hystrix
+Circuit Breaker
+
+
+
+Spring Cloud config server: distributed configurations across multiple applications and environments.
+
+Zipkin and Spring Cloud Sleuth, Distributed Tracing.
+
+
+Working with Fegin client:--
+
+Feign client is a declarative web  service client.
+It makes webservice clients easier.
+To use Feign create an interface and annotate it.
+Feign supports pluggable encoders and decoders.
+
+
+pom.xml
+
+<dependency>
+   <groupId>org.springframework.cloud</groupId>
+	<artifactId>spring-cloud-starter-openfeign</artifactId>
+</dependency>
+
+
+
+
+
+
+FeignApp:
+
+@EnableFeignClients
+@SpringBootApplication
+public class FeignClientApplication {
+
+	public static void main(String[] args) {
+		ApplicationContext cont = SpringApplication.run(FeignClientApplication.class, args);
+		FeignController feignController = cont.getBean(FeignController.class);
+		
+		try {
+			feignController.getCoupons();
+			
+		}catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		
+		
+		
+	}
+	
+	@Bean
+	public FeignController feignController() {
+		return new FeignController();
+	}
+}
+
+FeignController:
+
+@Controller
+public class FeignController {
+
+	@Autowired
+	private FeignService feignService;
+	
+	public void getCoupons() throws RestClientException,IOException{
+		System.out.println("Inside get coupons");
+		
+		try {
+			String response = feignService.getCoupons();
+			System.out.println(response);
+			
+		}catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+}
+
+
+
+
+
+
+
+
+
+
+
+FeignService
+
+@FeignClient(name="zuulapigateway")  // here we can use url or service name
+public interface FeignService {
+
+	@GetMapping(value="/CoupenApp/hi")  // this endpoint is nothing but other service endpiont we are calling.
+	//here CoupenApp is map with the application.properties in zuul.routes.CoupenApp.service-id=eurekaclient
+	//here eurekaclient is other service application name.
+	public String getCoupons();
+}
+
+
+application.propertisfile
+eureka.client.service-url.defaultZone=http://localhost:8761/eureka
+spring.application.name=FeignClient
+server.port=8085
+
+
+working with zuul
+
+server.port=8089
+spring.application.name=zuulapigateway
+eureka.client.service-url.defaultZone=http://localhost:8761/eureka
+
+zuul.routes.CoupenApp.service-id=eurekaclient

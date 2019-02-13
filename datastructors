@@ -1,0 +1,393 @@
+Linkedlist --
+1. Linked list is a datastructure which is used to store the collection of data.
+2. Linked list as a concept of Node , Node will have the data and address of next Node.
+3. Head node will be pointing to the first node and the last node will be poinint to the null
+4. Linked list will grow srink and dynamically.
+5. Linked list will not waste the memory.
+
+Single linked list:--
+-----------
+Single linked list will always transfers in forward direction we cant come to the backward direction
+Single linked list node as the data and address of the next node
+these nodes are created runtime based one the requirement.
+
+
+Stack:--
+1. It is nothing but LIFO 
+2. It is Abstract data type
+3. We have 3 methods, like push,pop,peek,
+   push -- add
+   peek -- find
+   pop -- delete
+  
+1. Implementing stack using array.  
+  
+ public class Runner {
+	public static void main(String[] args) {
+		Stack nums = new Stack();
+		nums.push(15);
+		nums.push(12);
+		System.out.println(nums.peek());
+		nums.push(8);
+		System.out.println(nums.pop());
+		nums.show();
+	}
+}
+
+public class Stack {
+
+	int stack[] = new int[5];
+	int top =0;
+	
+	public void  push(int data) {
+		stack[top] = data;
+		top++;
+	}
+	
+	public int pop() {
+		
+		int data;
+		top--;
+		data=stack[top];
+		stack[top]=0;
+		return data;
+	}
+	
+	public int peek() {
+		int data;
+		data = stack[top-1];
+		return data;
+	}
+	
+	public void show() {
+		
+		for(int n:stack) {
+			System.out.println(n + " ");
+		}
+	}
+}
+
+2. Implementing stack using linkedlist.
+   
+package prac;
+
+
+class Node{
+	
+	int data; // here data is key
+	Node next; // here next is ref of next node
+	
+	public Node(int key) {
+		this.data=key;
+		this.next=null;
+	}
+	
+	public void displayNode() {
+		System.out.println("Item" + data);
+	}
+}
+
+class LinkedList{
+	
+	Node first;
+	
+	public LinkedList() {
+		first = null;
+	}
+	
+	public void insert(int i) {
+		
+		Node newNode = new Node(i);
+		newNode.next = first;
+		first = newNode;
+	}
+	
+	public Node delete() {
+		Node temp;
+		temp = first;
+		first = first.next;
+		return temp;
+	}
+	
+	public void display() {
+		System.out.println("hey here is the linkedlist.");
+		
+		Node current = first;
+		while(current!=null) {
+			current.displayNode();
+			current=current.next;
+		}
+		System.out.println(" ");
+	}
+}
+
+class Stack2{
+	private LinkedList linedlistObj;
+	
+	public Stack2() {
+		linedlistObj = new LinkedList();
+	}
+	
+	public void push(int i) {
+		linedlistObj.insert(i);
+	}
+	
+	public Node pop() {
+		return linedlistObj.delete();
+	}
+	
+	public void displayStack() {
+		System.out.println("stack :");
+		linedlistObj.display();
+	}
+	
+}
+
+public class StackUsingLinkedList {
+
+	public static void main(String[] args) {
+
+		Stack2 stack = new Stack2();
+		stack.push(10);
+		stack.push(20);
+		stack.push(30);
+		stack.push(40);
+		stack.push(50);
+		stack.pop();
+		stack.pop();
+		stack.displayStack();
+	}
+
+}
+Queue(FIFO):--
+---------------
+package linkedlistdemo;
+
+public class QueueUsingLinkedList{
+	
+	
+	public static void main(String[] args) {
+		
+		Queue obj = new Queue();
+		obj.insert(1);
+		obj.insert(2);
+		obj.insert(3);
+		obj.insert(4);
+		obj.remove();
+		obj.remove();
+		obj.display();
+	}
+	
+}
+
+class Queue{
+	
+	LinkedList lilist = new LinkedList();
+	
+	public void insert(int i){
+		lilist.insert(i);
+	}
+	
+	public void remove(){
+		lilist.remove();
+	}
+	public void display(){
+		lilist.display();
+	}
+}
+
+class Node {
+
+	 int data;
+	 Node next;
+	 
+	public Node(int key) {
+		data = key;
+		next = null;
+	}
+	
+	public void display(){
+		System.out.println("item "+data);
+	}
+}
+
+class LinkedList{
+	
+	Node first;
+	
+	public LinkedList(){
+		first = null;
+	}
+	
+	public void insert(int i){
+		
+		Node newnode = new Node(i);
+		if(first == null){
+			first = newnode;
+			return;
+		}
+		Node tempnode = first;
+		while(tempnode.next != null){
+			tempnode = tempnode.next;
+		}
+		tempnode.next = newnode;
+	}
+	
+	public Node remove(){
+		Node temp = first;
+		first = first.next;
+		return temp;
+	}
+	
+	public void display(){
+		Node tempnode = first;
+		while(tempnode != null){
+			tempnode.display();
+			tempnode = tempnode.next;
+		}
+		System.out.println();
+		
+	}
+}
+
+===================================================================================================================================
+public class Node {
+
+    public int data;
+    public Node next;
+
+    Node(int data){
+        this.data = data;
+        next = null;
+    }
+
+    public void display(){
+        System.out.println(" =================== "+data);
+    }
+}
+
+public class LinkedList {
+
+    Node head;
+
+    public void insert(int newData){
+        Node newNode = new Node(newData);
+        newNode.next = head;
+        head = newNode;
+    }
+
+    public void insertLast(int newData){
+        Node CurrentNode = head;
+        while(CurrentNode.next != null){
+            CurrentNode = CurrentNode.next;
+        }
+        Node newNode = new Node(newData);
+        CurrentNode.next = newNode;
+    }
+
+    public void printNode(){
+
+        Node tempNode = head;
+        while(tempNode != null){
+            tempNode.display();
+            tempNode = tempNode.next;
+        }
+    }
+
+
+
+}
+public class ListDemo {
+
+    public static void main(String[] args) {
+
+        LinkedList list = new LinkedList();
+        list.insert(11);
+        list.insert(13);
+        list.insert(14);
+
+        list.insert(18);
+        list.insert(15);
+
+        list.insertLast(2);
+        list.insertLast(5);
+        list.printNode();
+
+
+    }
+}
+============================================================================================================
+package prac;
+
+public class SinglyLinkedList {
+
+	
+	//public ListNode head;
+	
+	
+	public void display(ListNode head){
+		
+		if(head == null){
+			return;
+		}
+		
+		
+		ListNode current = head;
+		while(current != null){
+			System.out.println(current.data + " --> ");
+			current = current.next;
+		}
+		
+		System.out.println(current);
+	}
+	
+	
+	public ListNode insertAtBegining(ListNode head,int data){
+		
+		ListNode newNode = new ListNode(data);
+		if(head == null){
+			return newNode;
+		}
+		
+		newNode.next = head;
+		head = newNode;
+		return newNode;
+		
+	}
+	
+public ListNode insertAtEnd(ListNode head,int data){
+		
+		ListNode newNode = new ListNode(data);
+		ListNode current = head;
+		while(current.next != null){
+			current = current.next;
+		}
+		current.next = newNode;
+		return head;
+		
+	}
+	
+	public static void main(String[] args) {
+
+		
+		
+		ListNode head = new ListNode(10);
+		ListNode second = new ListNode(8);
+		ListNode third = new ListNode(1);
+		ListNode fourth = new ListNode(11);
+		
+		
+		head.next = second;
+		second.next = third;
+		third.next = fourth;
+		
+		SinglyLinkedList s = new SinglyLinkedList();
+		s.display(head);
+		
+		ListNode newNde = s.insertAtEnd(head, 15);
+		s.display(newNde);
+	}
+
+}
+
+

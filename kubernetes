@@ -1,0 +1,20 @@
+Create one master and 6 nodes:----
+==================================
+
+gcloud preview container clusters create clustername --zone asia-east1-b --password gmail@123 --num-nodes 6
+
+
+accessing the api:--
+================
+curl http://masterport -k -u admin
+-k avoid the ssl error
+-u username
+
+checking the pods in api:--
+----------------------------- 
+curl http://masterport/api/v1beta1/pods or services or replicationController -k -u admin
+
+creating replicas:-
+------------------------ 
+kubectl scale rc nginx --replicas=5
+

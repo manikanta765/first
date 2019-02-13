@@ -1,0 +1,77 @@
+Hystrix:--
+Hystrix is the implementation of Circuit Breaker Pattern,which gives a control over latency and failure between 
+distributed services.
+The main idea is to stop cascading failures.
+Important aspects of fault-tolerant systems that self-heal.
+
+In this program we are calling 2 services, if any one service fials it will not get the response, here other two services are
+normal restcalls.
+
+package com.example.demo;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.cloud.netflix.hystrix.EnableHystrix;
+import org.springframework.context.annotation.Bean;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.client.RestTemplate;
+
+import com.netflix.hystrix.contrib.javanica.annotation.HystrixCommand;
+
+@SpringBootApplication
+@RestController
+@EnableHystrix
+public class HystrixDemoApplication {
+
+	@Autowired
+	private RestTemplate template;
+	
+	
+	public static void main(String[] args) {
+		SpringApplication.run(HystrixDemoApplication.class, args);
+	}
+	
+	
+	@HystrixCommand(groupKey="java techie",commandKey="java techie",fallbackMethod="bookMyShowFallBack")
+	@GetMapping("/bookMyShow")
+	public String callURLs() {
+		
+		String emailServiceResponse = template.getForObject("http://localhost:8081/emailservice/send", String.class);
+		String paytmServiceResponse = template.getForObject("http://localhost:8082/paytmservice/send", String.class);
+		
+		return emailServiceResponse + "\n" + paytmServiceResponse;
+	}
+	
+	@GetMapping("/bookMyShowWithoutHystrix")
+	public String bookMyShowWithoutHystrix() {
+		
+		String emailServiceResponse = template.getForObject("http://localhost:8081/emailservice/send", String.class);
+		String paytmServiceResponse = template.getForObject("http://localhost:8082/paytmservice/send", String.class);
+		
+		return emailServiceResponse + "\n" + paytmServiceResponse;
+	}
+	
+	
+	public String bookMyShowFallBack() {
+		return "service gateway failed..:";
+	}
+	
+	@Bean
+	public RestTemplate template() {
+		return new RestTemplate();
+	}
+}
+
+-----------------------------------------------------------------------------------------------------------------------------
+Spring Eureka Server:--
+Eureka is a service registory or we can say it is an embeded server provided by Netflix third party which integrate with spring framework.
+
+Use of Eureka:--
+Microservice registration and discovery with spring cloud and netflix eureka.
+
+
+
+

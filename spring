@@ -1,0 +1,944 @@
+TightCoupling in java:--
+1.  When modifications done in super class, demands modifications in the caller class is called TightCoupling.
+
+Example:--
+
+
+Dependency Injection:--
+----------------
+ Dependency Injection is a design pattern that removes the dependency of the programs, In such case we provide the information from
+ the external source such as XML file. It makes our code loosely coupled and easier for testing.
+ 
+
+The Spring Container is the core of the spring framework. The container creates the objects,wire them together,configure them,
+and manage their complete life cycle from creation till destruction.
+   The spring container uses Dependency Injection to manage the components that make up an application.
+   1. Beanfactory container
+   2. Application context container
+   
+Beanfactory:--
+-------------
+It is an interface.
+It is the main and the basic way to access the Spring container.
+It provides the DI/IOC mechanism for the spring.
+It is built upon factory design pattern.
+It loads the bean definitions and their property descriptions from configuration file.
+Instantiates the beans when they are requested.
+
+Note:--
+Beanfactory doesn't create the objects of beans immediately,when they are requested such as by getBean() method.
+
+The way of create Beanfactory 
+Resource  resource = new FileSystemResource("beans.xml");
+Beanfactory factory = new XmlBeanFactory(resource);
+
+Sample Prog:--
+--------------
+Bean:--
+public class Message {
+	private int messageId;
+	private String message;
+	public int getMessageId() {
+		return messageId;
+	}
+	public void setMessageId(int messageId) {
+		this.messageId = messageId;
+	}
+	public String getMessage() {
+		return message;
+	}
+	public void setMessage(String message) {
+		this.message = message;
+	}
+}
+Beans.xml
+--------------
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+                           http://www.springframework.org/schema/beans/spring-beans.xsd
+                           http://www.springframework.org/schema/context
+                           http://www.springframework.org/schema/context/spring-context.xsd ">
+
+      
+       <bean id="message" class="springprac.Message">
+       <property name="messageId" value="101"/>
+       <property name="message" value="Hello"/>
+       </bean>
+
+  <alias name="message" alias="bean1"/>
+  <alias name="message" alias="bean2"/>
+
+</beans>
+
+clientTest:--
+------------
+public class ClientTest {
+
+	public static void main(String[] args) {
+
+		
+		Resource resource = new ClassPathResource("Beans.xml");
+		BeanFactory beanFactory = new XmlBeanFactory(resource);
+		
+		Object obj = (Object)beanFactory.getBean("message");
+		if(obj != null) {
+			
+			Message message = (Message) obj;
+			System.out.println(message.getMessageId()+"\t"+message.getMessage());
+		}
+		
+		
+		System.out.println("===============================");
+		
+		Message message = beanFactory.getBean("message", Message.class);
+		System.out.println(message.getMessageId()+"\t"+message.getMessage());
+		
+		System.out.println("===============================");
+		
+		String[] message1 = beanFactory.getAliases("message");
+		for(String aliasNames:message1) {
+			System.out.println(aliasNames);
+		}
+		
+		System.out.println("===============================");
+		Message message2 = beanFactory.getBean(Message.class);
+		System.out.println(message2.getMessageId()+"\t"+message2.getMessage());
+		
+		System.out.println("===============================");
+		Class<?> cls = beanFactory.getType("message");
+		System.out.println(cls.getName());
+		
+		
+		System.out.println("===============================");
+		System.out.println(beanFactory.isSingleton("message"));
+		
+	}
+
+}
+
+ApplicationContext:--
+-------------
+1. The ApplicationContext interface is the child interface of BeanFactory interface.
+2. The ApplicationContext adds some extra functionality than BeanFactory such as simple integration with Spring AOP,
+   message resource handling, event propagation, application layer specific context for webapplication.
+   
+
+
+
+ApplicationContext context = new ClassPathXmlApplicationContext("applicationContext.xml");
+		Employee emp = context.getBean(Employee.class);
+		System.out.println(emp.getEmployeeId()+"\t"+emp.getEmpName());
+
+
+Bean Scopes:
+--------------
+The beans in spring container can be created in seven scopes.
+1. Singleton
+2. Prototype
+3. request
+4. session
+5. application
+6. global-session
+7. websocket
+
+Singleton:--
+--------------
+It returns a single bean instance per Spring IOC Container.
+This singleton instance is stored in a cache if any subsequent requests comes it will return the cached object.
+If no bean scope is specifed in configuration file, by default is Singleton
+
+Prototype:--
+------
+It returns a new bean instance each time when requested.
+It has not store any cache version like singleton.
+
+request:--
+-----------
+It contains single HTTP-request.
+Each and every http request will have its own instance of bean is created.
+Only valid in the context of a web-aware spring application context.
+
+call back interface:-
+------------------------
+If Object is no longer using then we will use call back methods.
+1. implements InitializingBean,DisposableBean
+here after initialization properties will display and then destroy the object.
+
+public class Message implements InitializingBean,DisposableBean{
+
+	private int messageId;
+	private String message;
+	
+	public int getMessageId() {
+		return messageId;
+	}
+	public void setMessageId(int messageId) {
+		this.messageId = messageId;
+	}
+	public String getMessage() {
+		return message;
+	}
+	public void setMessage(String message) {
+		this.message = message;
+	}
+	@Override
+	public void afterPropertiesSet() throws Exception {
+		System.out.println("Bean is going through init process.");		
+	}
+	@Override
+	public void destroy() throws Exception {
+		System.out.println("Bean is going through destroy");		
+		
+	}
+	 
+}
+
+2 . Here we can apply all beans call back functions 
+
+
+public class Message{
+
+	private int messageId;
+	private String message;
+	
+	public int getMessageId() {
+		return messageId;
+	}
+	public void setMessageId(int messageId) {
+		this.messageId = messageId;
+	}
+	public String getMessage() {
+		return message;
+	}
+	public void setMessage(String message) {
+		this.message = message;
+	}
+	public void init() throws Exception {
+		System.out.println("Bean is going through init process.");		
+	}
+	public void destroy() throws Exception {
+		System.out.println("Bean is going through destroy");		
+		
+	}
+	
+}
+
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+                           http://www.springframework.org/schema/beans/spring-beans.xsd
+                           http://www.springframework.org/schema/context
+                           http://www.springframework.org/schema/context/spring-context.xsd " default-init-method="init" default-destroy-method="destroy">
+
+      
+       <bean id="message" class="model.Message" >
+         <property name="messageId" value="104"/>
+          <property name="message" value="Hi"/>
+       </bean>
+
+		
+</beans>
+
+
+Transaction Management:--
+------------------------
+ A Transaction is a unit of work performed within a database management system.
+ Each unit of work performed should be entirely committed or rollback.
+ 
+ https://repo.spring.io/release/org/springframework/spring/
+ 
+ 
+ ----------------------Spring with Jdbc------------------------
+ Table:--
+ create table employee_table(employee_id int(11) NOT NULL auto_increment,
+                            employee_name varchar(45) NOT NULL,
+			    salary double default NULL,
+			    email varchar(45) default NULL,
+			    gender varchar(10) default NULL,
+			    PRIMARY KEY (employee_id));
+
+ 
+ Model:
+ public class Employee {
+
+	private int employeeId;
+	private String employeeName;
+	private String email;
+	private Double salary;
+	private String gender;
+	
+	public int getEmployeeId() {
+		return employeeId;
+	}
+	public void setEmployeeId(int employeeId) {
+		this.employeeId = employeeId;
+	}
+	public String getEmployeeName() {
+		return employeeName;
+	}
+	public void setEmployeeName(String employeeName) {
+		this.employeeName = employeeName;
+	}
+	public String getEmail() {
+		return email;
+	}
+	public void setEmail(String email) {
+		this.email = email;
+	}
+	public Double getSalary() {
+		return salary;
+	}
+	public void setSalary(Double salary) {
+		this.salary = salary;
+	}
+	public String getGender() {
+		return gender;
+	}
+	public void setGender(String gender) {
+		this.gender = gender;
+	}
+	
+}
+
+springjdbc.xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xmlns:p="http://www.springframework.org/schema/p"
+xsi:schemaLocation="http://www.springframework.org/schema/beans
+http://www.springframework.org/schema/beans/spring-beans-3.0.xsd">
+
+
+	<!-- <bean id="ds" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+		<property name="driverClassName" value="com.mysql.jdbc.Driver"/>
+		<property name="url" value="jdbc:mysql://localhost:3306/hibdb" />
+		<property name="username" value="root" />
+		<property name="password" value="Muthu" />
+	</bean>
+	
+	1. Creating JdbcTemplate object 
+	<bean id="jdbcTemplate" class="org.springframework.jdbc.core.JdbcTemplate">
+		<property name="dataSource" ref="ds"></property>
+	</bean>
+	
+	2. Injecting JdbcTemplate object to StudentDao class property 
+	<bean id="dao" class="jdbc.dao.StudentDao">
+		<property name="jdbcTemplate" ref="jdbcTemplate"></property>
+	</bean> -->
+	
+	
+	<bean id="datasource" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+		<property name="driverClassName" value="com.mysql.jdbc.Driver"/>
+		<property name="url" value="jdbc:mysql://localhost:3306/hibdb" />
+		<property name="username" value="root" />
+		<property name="password" value="Muthu" />
+	</bean>
+
+<bean id="employeeService" class="jdbc.service.EmployeeServiceImp">
+   <property name="employeeDao" ref="employeeDao"/>
+</bean>
+<bean id="employeeDao" class="jdbc.dao.EmployeeDaoImp">
+ <property name="dataSource" ref="datasource"/>
+</bean>
+
+</beans>
+
+Test:-
+package jdbc.test;
+
+import java.util.List;
+
+import org.springframework.context.support.AbstractApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
+
+import jdbc.model.Employee;
+import jdbc.service.EmployeeService;
+import jdbc.service.EmployeeServiceImp;
+
+public class Test {
+
+	public static void main(String[] args) {
+
+		
+		AbstractApplicationContext context = new ClassPathXmlApplicationContext("springjdbc.xml");
+		EmployeeService service = context.getBean("employeeService",EmployeeServiceImp.class);
+		
+//		createEmployee(service);
+		
+//		Employee emp = service.fetchEmployeeById(2);
+//		System.out.println(emp.getEmployeeId()+"\t"+emp.getEmployeeName());
+		
+		
+//		List<Employee> emp =  service.getAllEmployeeInfo();
+//		for(Employee e:emp) {
+//			System.out.println(e.getEmployeeId()+"\t"+e.getEmployeeName()+"\t"+e.getGender()+"\t"+e.getSalary());
+//		}
+		
+//		service.updateEmployeeEmailById("muthu1@gmail.com", 2);
+		
+		service.deleteEmployeeById(2);
+		
+		context.close();
+	}
+	
+	
+	public static void createEmployee(EmployeeService service) {
+		Employee emp = new Employee();
+		emp.setEmail("bunny@gmail.com");
+		emp.setEmployeeName("bunny");
+		emp.setSalary(60000.00);
+		emp.setGender("male");
+		
+		service.addEmployee(emp);
+	}
+
+}
+
+EmpService:--
+public interface EmployeeService {
+
+	public abstract void addEmployee(Employee employee);
+	public abstract Employee fetchEmployeeById(int employeeId);
+	public abstract void deleteEmployeeById(int empployeeId);
+	public abstract void updateEmployeeEmailById(String newEmail,int employeeId);
+	public abstract List<Employee> getAllEmployeeInfo();
+}
+
+EmployeeServiceImp:--
+package jdbc.service;
+
+import java.util.List;
+
+import jdbc.dao.EmployeeDao;
+import jdbc.model.Employee;
+
+public class EmployeeServiceImp implements EmployeeService{
+	
+	private EmployeeDao employeeDao;
+	
+	public EmployeeDao getEmployeeDao() {
+		return employeeDao;
+	}
+
+	public void setEmployeeDao(EmployeeDao employeeDao) {
+		this.employeeDao = employeeDao;
+	}
+
+	@Override
+	public void addEmployee(Employee employee) {
+		employeeDao.createEmployee(employee);
+		
+	}
+
+	@Override
+	public Employee fetchEmployeeById(int employeeId) {
+		return employeeDao.getEmployeeById(employeeId);
+	}
+
+	@Override
+	public void deleteEmployeeById(int empployeeId) {
+		employeeDao.deleteEmployeeById(empployeeId);
+		
+	}
+
+	@Override
+	public void updateEmployeeEmailById(String newEmail, int employeeId) {
+		employeeDao.updateEmployeeEmailById(newEmail, employeeId);
+		
+	}
+
+	@Override
+	public List<Employee> getAllEmployeeInfo() {
+		return employeeDao.getAllEmployeeDetails();
+	}
+
+}
+
+EmployeeDao:--
+package jdbc.dao;
+
+import java.util.List;
+
+import jdbc.model.Employee;
+
+public interface EmployeeDao {
+
+	public abstract void createEmployee(Employee employee);
+	public abstract Employee getEmployeeById(int employeeId);
+	public abstract void deleteEmployeeById(int empployeeId);
+	public abstract void updateEmployeeEmailById(String newEmail,int employeeId);
+	public abstract List<Employee> getAllEmployeeDetails();
+}
+
+EmployeeDaoImp:--
+package jdbc.dao;
+
+public class EmployeeDaoImp implements EmployeeDao{
+	
+	
+	private DataSource dataSource;
+	private JdbcTemplate jdbcTemplate;
+	
+	public DataSource getDataSource() {
+		return dataSource;
+	}
+
+	public void setDataSource(DataSource dataSource) {
+		this.dataSource = dataSource;
+		this.jdbcTemplate = new JdbcTemplate(dataSource);
+	}
+
+	@Override
+	public void createEmployee(Employee employee) {
+		
+		
+		/*Connection conn = null;
+		PreparedStatement ps = null;
+		try {
+			
+			conn = dataSource.getConnection();
+			String sql ="insert into employee_table(employee_name,email,gender,salary) VALUEs(?,?,?,?)";
+			ps = conn.prepareStatement(sql);
+			
+			ps.setString(1, employee.getEmployeeName());
+			ps.setString(2, employee.getEmail());
+			ps.setString(3, employee.getGender());
+			ps.setDouble(4, employee.getSalary());
+			int up = ps.executeUpdate();
+			
+			if(up > 0) {
+				System.out.println("Employee is created");
+			}
+			
+		}catch (Exception e) {
+			e.printStackTrace();
+		}finally {
+			if(conn !=null)
+				try {
+					conn.close();
+				} catch (SQLException e) {
+					e.printStackTrace();
+				}
+		}*/
+		String sql ="insert into employee_table(employee_name,email,gender,salary) VALUEs(?,?,?,?)";
+		int up = jdbcTemplate.update(sql, new Object[] {employee.getEmployeeName(),employee.getEmail(),employee.getGender(),employee.getSalary()});
+		if(up > 0) {
+			System.out.println("Employee is created");
+		}
+	}
+
+	@Override
+	public Employee getEmployeeById(int employeeId) {
+		
+		String sql="select * from employee_table where employee_id=?";
+		Employee emp = jdbcTemplate.queryForObject(sql, new EmployeeRowMapper(),employeeId);
+		
+		return emp;
+	}
+
+	@Override
+	public void deleteEmployeeById(int empployeeId) {
+	
+		String sql ="delete from employee_table where employee_id=?";
+		int update = jdbcTemplate.update(sql,empployeeId);
+		if(update >0) {
+			System.out.println("Employee deleted successfully..");
+		}
+		
+	}
+
+	@Override
+	public void updateEmployeeEmailById(String newEmail, int employeeId) {
+		String sql = "update employee_table set email=? where employee_id=?";
+		int update = jdbcTemplate.update(sql, newEmail,employeeId);
+		if(update >0) {
+			System.out.println("update successfully..");
+		}
+	}
+
+	@Override
+	public List<Employee> getAllEmployeeDetails() {
+		String sql ="select * from employee_table";
+		return jdbcTemplate.query(sql,new EmployeeRowMapper());
+	}
+
+}
+
+EmployeeRowMapper:--
+package jdbc.dao;
+
+public class EmployeeRowMapper implements RowMapper<Employee>{
+
+	@Override
+	public Employee mapRow(ResultSet rs, int rowNum) throws SQLException {
+		
+		Employee emp = new Employee();
+		emp.setEmail(rs.getString("email"));
+		emp.setEmployeeId(rs.getInt("employee_id"));
+		emp.setEmployeeName(rs.getString("employee_name"));
+		emp.setSalary(rs.getDouble("salary"));
+		emp.setGender(rs.getString("gender"));
+		return emp;
+	}
+
+}
+
+------------------------------------------------------------------------------------------------------------------------
+Spring Auto-Scanning Components
+Normally we declare all the beans or components in XML bean configuration file, so that spring can detect and register your
+beans or components.Actually, spring is able to autoscan,detect and instantiate your beans from pre-defined project package.
+
+Add this "context:component-scan" in bean configuration file,it means enable auto scanning feature in spring.
+The base-package is indicate where are your components stored,Spring will scan this folder and create the bean(annotated with
+@component) and register it in spring container.
+
+EmployeeDAO:
+@Component // if we want to make it custom component use @component("empSer) use this one in .xml file
+public class EmployeeDao {
+	public void addEmployee() {
+		System.out.println("inside EmployeeDAO addEmployee().");
+	}
+}
+EmployeeService:
+@Component
+public class EmployeeService {
+	@Autowired
+	EmployeeDao employeeDAO;
+	
+	
+	public void setEmployeeDAO(EmployeeDao employeeDAO) {
+		this.employeeDAO = employeeDAO;
+	}
+	
+	public void addEmployee() {
+		System.out.println("Inside EmployeeService addEmployee()");
+		employeeDAO.addEmployee();
+	}
+
+	@Override
+	public String toString() {
+		return "EmployeeService [employeeDAO=" + employeeDAO + "]";
+	}
+}
+<beans xmlns="http://www.springframework.org/schema/beans"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xmlns:context="http://www.springframework.org/schema/context"
+xsi:schemaLocation="http://www.springframework.org/schema/beans
+http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+http://www.springframework.org/schema/context
+http://www.springframework.org/schema/context/spring-context-4.0.xsd">
+
+<context:component-scan base-package="customautoscan"/>
+
+</beans>
+
+AutoScanApp
+public class AutoScanApp {
+
+	public static void main(String[] args) {
+
+		ApplicationContext context = new ClassPathXmlApplicationContext("autscancomponent.xml");
+		EmployeeService employeeService = (EmployeeService) context.getBean("employeeService",EmployeeService.class);
+		
+		//if we are using custom using this empServ
+		EmployeeService employeeService = (EmployeeService) context.getBean("empSer",EmployeeService.class);
+		
+		System.out.println(employeeService);
+	    employeeService.addEmployee();	
+	
+	}
+
+}
+
+Autowired Annotation :--
+By default @autowired will perform the dependency checking to make sure the property has been wired properly
+Employee:
+public class Employee {
+
+	private String name;
+	
+	
+	@Autowired(required=false)
+	private Address address;
+	
+	
+	public Employee(String name) {
+		
+		System.out.println("Employee(String name) constructor " + "is called by the Spring container");
+		this.name = name;
+	}
+	
+	public void displayEmployeeDetails() {
+		System.out.println("Employee[name"+ name +",address="+ address + "]");
+	}
+	
+}
+
+<bean id="employee" class="springCore.bean.Employee">
+
+<constructor-arg value="muthu"></constructor-arg>
+</bean>
+
+</beans>
+
+Test:
+
+		ApplicationContext context = new ClassPathXmlApplicationContext("dependencycheck.xml");
+		System.out.println("-------------------------------------------");
+		
+		Employee emp = (Employee) context.getBean("employee");
+		emp.displayEmployeeDetails();
+
+
+ @Qualifier Annotation:--
+ The @Qualifier annotation is used to control which bean should be autowire on a field.
+ Employee:
+ public class Employee {
+
+	private String name;
+	
+	
+	@Autowired
+	@Qualifier("address")
+	private Address address;
+	
+	
+	public Employee(String name) {
+		
+		System.out.println("Employee(String name) constructor " + "is called by the Spring container");
+		this.name = name;
+	}
+	
+	public void displayEmployeeDetails() {
+		System.out.println("Employee[name"+ name +",address="+ address + "]");
+	}
+	
+}
+.xml
+<beans xmlns="http://www.springframework.org/schema/beans"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xmlns:context="http://www.springframework.org/schema/context"
+xsi:schemaLocation="http://www.springframework.org/schema/beans
+http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+http://www.springframework.org/schema/context
+http://www.springframework.org/schema/context/spring-context-4.0.xsd">
+
+<context:annotation-config/>
+
+
+
+<bean id="address" class="autowired.model.Address">
+<constructor-arg value="Bangalore"/>
+<constructor-arg value="Karnataka"/>
+<constructor-arg value="India"/>
+</bean>
+
+<bean id="address1" class="autowired.model.Address" >
+<constructor-arg value="Bangalore East"/>
+<constructor-arg value="KarnatakaEast"/>
+<constructor-arg value="India"/>
+</bean>
+
+<bean id="employee" class="springCore.bean.Employee">
+
+<constructor-arg value="muthu"></constructor-arg>
+</bean>
+
+</beans>
+
+Test:
+ApplicationContext context = new ClassPathXmlApplicationContext("dependencycheck.xml");
+		System.out.println("-------------------------------------------");
+		
+		Employee emp = (Employee) context.getBean("employee");
+		emp.displayEmployeeDetails();
+		
+
+@Resource Annotation:--
+We can use @Resource annotation to auto wire bean on the setter method or a field.
+Moreover it can be autowired property in a particular bean.
+public class Employee {
+
+	private String name;
+	
+	
+//	@Autowired
+//	@Qualifier("address")
+	@Resource
+	private Address address;
+	
+	
+	public Employee(String name) {
+		
+		System.out.println("Employee(String name) constructor " + "is called by the Spring container");
+		this.name = name;
+	}
+	
+	public void displayEmployeeDetails() {
+		System.out.println("Employee[name"+ name +",address="+ address + "]");
+	}
+	
+}
+
+Name parameter of Resource Annotation:--
+The @Resource (name="address1") annotation used to control which bean should be autowire on a field.
+@Resource is not applicable for constructors.
+public class Employee {
+
+	private String name;
+	@Resource(name="address1")
+	private Address address;
+	
+	
+	public Employee(String name) {
+		
+		System.out.println("Employee(String name) constructor " + "is called by the Spring container");
+		this.name = name;
+	}
+	
+	public void displayEmployeeDetails() {
+		System.out.println("Employee[name"+ name +",address="+ address + "]");
+	}
+	
+}
+
+Filter components in AutoScanning:--
+Spring "filtering" to scan and register components name which matched defined "regex" , even the class is not annotated with 
+@component.
+
+EmployeeDao
+
+package autowired.filter.dao;
+public class EmployeeDao {
+
+	public void addEmployee() {
+		System.out.println("inside EmployeeDAO addEmployee().");
+	}
+}
+
+EmployeeService
+package autowired.filter.service;
+
+import org.springframework.beans.factory.annotation.Autowired;
+
+import autowired.filter.dao.EmployeeDao;
+
+public class EmployeeService {
+
+	@Autowired
+	EmployeeDao employeeDAO;
+	
+	
+	public void setEmployeeDAO(EmployeeDao employeeDAO) {
+		this.employeeDAO = employeeDAO;
+	}
+	
+	public void addEmployee() {
+		System.out.println("Inside EmployeeService addEmployee()");
+		employeeDAO.addEmployee();
+	}
+
+	@Override
+	public String toString() {
+		return "EmployeeService [employeeDAO=" + employeeDAO + "]";
+	}
+}
+
+xml
+<beans xmlns="http://www.springframework.org/schema/beans"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xmlns:context="http://www.springframework.org/schema/context"
+xsi:schemaLocation="http://www.springframework.org/schema/beans
+http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+http://www.springframework.org/schema/context
+http://www.springframework.org/schema/context/spring-context-4.0.xsd">
+<context:component-scan base-package="autowired.filter">
+          <context:include-filter type="regex" expression="autowired.filter.dao.*Dao.*"/>
+          <context:include-filter type="regex" expression="autowired.filter.service.*Service.*"/>
+</context:component-scan>
+</beans>
+
+Test:
+package autowired.test;
+
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
+
+import autowired.filter.service.EmployeeService;
+public class FilterAutoscan {
+	public static void main(String[] args) {
+		ApplicationContext context = new ClassPathXmlApplicationContext("filterautoscan.xml");
+		EmployeeService employeeService = (EmployeeService) context.getBean("employeeService",EmployeeService.class);
+		System.out.println(employeeService);
+	    employeeService.addEmployee();	
+	}
+}
+
+ResourceLoaderAware:-
+we have implemented ResourceLoaderAware interface using which we have accessed the file content of the file available in the
+classpath.
+
+names.txt
+Muthu
+Peter
+Juli
+
+ResourceLoaderAwareImpl.java
+public class ResourceLoaderAwareImpl implements ResourceLoaderAware{
+	private ResourceLoader resourceLoader;
+	@Override
+	public void setResourceLoader(ResourceLoader resourceLoader) {
+		System.out.println("setResourceLoader(Resource Loader) is called"+"by the spring container");
+		this.resourceLoader = resourceLoader;
+	}
+	public void displayFileInfo() {
+	Resource resource = resourceLoader.getResource("names.txt");
+			try {
+				BufferedReader br = new BufferedReader(new FileReader(resource.getFile().getPath()));
+			{
+				String thisline = null;
+				System.out.println("Names from the files are...:");
+				
+				while((thisline = br.readLine()) != null) {
+					System.out.println(thisline);
+				}
+			}
+			}catch (FileNotFoundException e) {
+			e.printStackTrace();
+		}catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+}
+
+resourceloader.xml
+<beans xmlns="http://www.springframework.org/schema/beans"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xmlns:context="http://www.springframework.org/schema/context"
+xsi:schemaLocation="http://www.springframework.org/schema/beans
+http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+http://www.springframework.org/schema/context
+http://www.springframework.org/schema/context/spring-context-4.0.xsd">
+<bean id="resourceLoaderAware" class="resourceloadaware.aware.ResourceLoaderAwareImpl"></bean>
+</beans>
+App.java
+public class App {
+	public static void main(String[] args) {
+		ClassPathXmlApplicationContext applicationContext = new ClassPathXmlApplicationContext("resourceloader.xml");
+		ResourceLoaderAwareImpl resourceLoaderAwareImpl = (ResourceLoaderAwareImpl)applicationContext.getBean("resourceLoaderAware");
+		System.out.println("resourceLoaderAwareImpl ="+resourceLoaderAwareImpl);
+		resourceLoaderAwareImpl.displayFileInfo();
+		applicationContext.close();
+	}
+}
+
+
+
+
+ 
+ 
+
+   

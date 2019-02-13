@@ -1,0 +1,10 @@
+Spring mvc flow:--
+=====================
+
+1 . Whenever client makes a request , first that request will receive the dispatcher servlet.
+2.  Dispatcher servlet to dispatch the request to the handlermapping .
+3.  Handlermapping will return the controller class name to dispatcher servlet.
+4.  Dispatcher servlet will transfer request to controller.controller will process the request by executing the appropriate methods
+    and return modelandview object. ModelandView object contains Model data and view name back to the dispatcher servlet.
+5.  Now dispatcher servlet send the model object to the viewresolver to get the actual view page.
+6.  Finally dispatcher servlet will pass the model object to the view page to display the result.

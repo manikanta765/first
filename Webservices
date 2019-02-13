@@ -1,0 +1,70 @@
+Webservice:--
+------------
+-- Webservice is a way for two applications or two electronics to communicate over a network.
+-- It uses interoperable format to transfer the data between application.(interoperable means common language for all technologies
+   i.e XML/JSON)
+   
+WebService Types:--
+----------------
+1. SOAP(Simple Object Access Protocal)
+2. REST(Representational State Transfer)
+
+
+Restful webservices:--
+------------------------
+Resource - What ever the data/response we will get from the server is knows as Resource.
+Each Resource can be accessed by its URL's.
+We can get the Resource from the Restful service in different format like HTML,XML,JSON,TEXT,PDF but we mainly prefer JSON only.
+Rest guidelines always talks about stateless communication between client and the server.
+Stateless means every single request from client to server will be considered as a fresh request.
+Because of this reason Rest always prefers HTTP as it is a stateless protocal.
+
+Caching:--
+--------------------
+Caching is process of storing server response in client side.so that a client needs not to make server request for same resource so 
+many times.
+
+JAX-RS Annotations:--
+------------------
+1. @webservice
+2. @Path    ----- It's a class & method level of annotation
+                  This will check the path next to the base URL
+3. @PathParam
+4. @GET
+5. @POST
+6. @PUT
+7. @HEAD
+8. @DELETE
+9. @OPTIONS
+10. @FormParam
+11. @QueryParam
+12. @HeaderParam
+13. @CookieParam
+14. @Produces --- here we will give our service to other person to utilize 
+              --- we can say this is a method level annotation , By using this annotation we can the get the output as you like XML,JSON
+                  plain text,HTML,Image,,,etc.
+                  
+               Note:-- Whenever we send a HTTP GET Request to our Restful service,it will invokes particular method and produces the output
+                       in different formats.
+                       We will use @ Produces for GET Request only.
+15. @Consumes --- here we are using other person services
+                  Whenver we are consume other services,
+                  This is a class level and method level annotation
+                  It decide which MIME type is consumed by the particular method 
+                  i.e. Which format the method can accept the input from client
+                  
+                  
+                      Receive Request from client we are using Extract input parameters
+                      -------------------------
+ 1. @PathParam
+ 2. @QueryParam  --- If client sends an input in the form of Query String in the URL, then those parameters are called as
+                     QueryParam.
+                     ex: http://localhost:8080/Jaxrsannotaions/rest/car?carName=BMW here ? is the query param
+                     Suppose we have two parameters we can divide using & like this car?carName=BMW&car=1
+ 3. @FormParam
+ 4. @MatrixParam --- If client sends an input in the form of Matrix String in the URL, then those parameters are called as
+                     QueryParam.
+                      ex: http://localhost:8080/Jaxrsannotaions/rest/car;carName=BMW
+                  
+
+

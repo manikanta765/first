@@ -1,0 +1,581 @@
+Hibernate Dirty checking:--
+------------------------------
+Dirty Checking  is one of the features of hibernate. In dirty checking, hibernate automatically detects whether
+an object is modified (or) not and need to be updated. As long as the object is in persistent state 
+i.e., bound to a particular Session(org.hibernate.Session). Hibernate monitors any changes to the objects and executes sql.
+
+Note:- For dirty checking to work, the object must exist in cache.
+
+Example:--
+
+Employee employee = session.get(Employee.class, 2);
+		if(employee != null) {
+			session.beginTransaction();
+			employee.setSalary(65000.00);
+//			session.update(employee);
+			session.getTransaction().commit();
+			
+		}else {
+			System.out.println("Employee dosen't exist with provided id,,,.");
+		}
+		
+difference between session.load() adn session.get():--
+----------------------------------------------------------
+
+session.load(): if record is not found in the database it will return object not found or proxy it will return 
+session.get(): if record is not found in the database it will return null pointer exception.
+		
+=================================
+
+
+hbm2ddl properties:--
+
+--> In case of Update if schema is not present in DB,then the schema is created.
+--> In case of Validate if schema is does'nt exit in db, it is not created.instead it will throw an error-Table not found.
+    it will not making any changes in db.
+--> In case of create-drop schema is not dropped on closing the session. It drops only on closing the sessionFactory.
+
+generate primarykeys in hibernate:--
+---> There are 4 primarykeys are generated
+
+1. GenerationType.AUTO
+2. GenerationType.IDENTITY
+3. GenerationType.SEQUENCE
+4. GenerationType.TABLE 
+
+GenerationType.AUTO in hibernate 5 one extra table is created in that table only one column name NEXT_VAL,
+in this column next generation value is there.
+
+Code Systax;
+@GeneratedValue(strategy=GenerationType.AUTO,generator="empid_generator")
+@SequenceGenerator(name="empid_generator",initialValue=1,allocationSize=1,sequenceName="empid_seq")
+
+GenerationType.IDENTITY it simply generate the primay key in sequence
+GenerationType.SEQUENCE 
+
+ValueTypes and Embedding Objects in Hibernate;
+==================================================
+@Embeddable:-- While using this annotation in Association it means we have Employee and Address beans
+               Here Employee entity class Addressbean is using and setting as @Embeddable
+               it means no need to create seperate table for address bean,simply show the address values in employee table only
+               for this purpose we are using Embeddable.
+
+example:-- 
+
+@Entity
+@Table(name="employeeAdd_table")
+public class Employee {
+	@Embedded
+	private Address address;//here this is the value object
+}
+ 
+@Embeddable
+public class Address {
+	@Column(name="street_name",length=50)
+	private String street;
+}
+
+AttributeOverrides and Embedding Objects in Hibernate;
+==============================================
+@AttributeOverrides:-- Using this annotation with overriding the existing colums and values.
+
+Example: Suppose we have Employee entity with two Addresses in this case without overriding the properties 
+         we are using this annotation
+@Entity
+@Table(name="employeeAdd_table")
+public class Employee {
+        @Embedded
+	@AttributeOverrides(value= {
+			@AttributeOverride(column = @Column(name="home_street_name"),name="street"),
+			@AttributeOverride(column = @Column(name="home_city_name"),name="city"),
+			@AttributeOverride(column = @Column(name="home_state_name"),name="state"),
+         		@AttributeOverride(column = @Column(name="home_pin_code"),name="pincode")
+		
+	})
+	private Address homeaddress;//here this is the value object
+      
+        @Embedded
+	@AttributeOverrides(value= {
+			@AttributeOverride(column = @Column(name="office_street_name"),name="street"),
+			@AttributeOverride(column = @Column(name="office_city_name"),name="city"),
+			@AttributeOverride(column = @Column(name="office_state_name"),name="state"),
+			@AttributeOverride(column = @Column(name="office_pin_code"),name="pincode")
+			
+	})
+	
+       private Address officeaddress;
+}
+
+Adding primarykey in AddressTable:
+===========================================
+@GenericGenerator(name="sequence_gen",strategy="sequence")
+@CollectionId(columns = { @Column(name="address_id") }, generator = "sequence_gen", type = @Type(type = "int"))		
+
+
+OnetoOneRlationship:-(one way binding)
+===================
+Here we have two Entites 
+Employee
+Address
+
+Here Employee table having Address ref
+
+@Entity
+@Table(name="emponeBi_table")
+public class Employee {
+
+@OneToOne(cascade=CascadeType.ALL)
+@OneToOne(cascade=CascadeType.PERSIST)
+	@JoinColumn(name="address_id")
+	private Address address;
+}
+
+@Entity
+@Table(name="addressBi_table")
+public class Address {
+}
+
+In Employee Entity having CascadeType.ALL it means in Main class we can save Parenttable it will automatically save child table also
+In Employee Entity having CascadeType.PERSIST it means in Main class we can persist Parenttable it will automatically persist child table also
+
+onetooneBidirectional(Two way binding):-
+===============================
+Here both Entites having relationships
+
+Here Employee table having Address ref,and Address table having emp ref
+
+@Entity
+@Table(name="emponeBi_table")
+public class Employee {
+
+@OneToOne(cascade=CascadeType.ALL)
+@OneToOne(cascade=CascadeType.PERSIST)
+	@JoinColumn(name="address_id")
+	private Address address;
+}
+
+@Entity
+@Table(name="addressBi_table")
+public class Address {
+
+@OneToOne(mappedBy="address")
+	private Employee employee;
+
+}
+
+Here mappedBy means in address table not created sepearate coloumn 
+
+onetoMany:--
+==============
+In Employee Entity take address entity has a list
+
+
+@Entity
+@Table(name="emponeBi_table")
+public class Employee {
+
+	@OneToMany(cascade=CascadeType.ALL)
+	@JoinTable(name="employee_address_table",joinColumns=@JoinColumn(name="employee_id"),inverseJoinColumns=@JoinColumn(name="address_id"))
+	private List<Address> addressList = new ArrayList<>();
+}
+
+Here JoinTable maintain the Employee entity and Address entity primary keys and foreign keys.
+
+
+onetoMany and Many to one:--
+======================
+Here both sides maintaing relationships
+
+@Entity
+@Table(name="emponeBi_table")
+@DynamicUpdate
+public class Employee {
+	@OneToMany(cascade=CascadeType.ALL,mappedBy="employee",fetch=FetchType.EAGER)
+	private List<Address> addressList = new ArrayList<>();
+}
+
+@Entity
+@Table(name="addressBi_table")
+public class Address {
+
+	@ManyToOne
+	@JoinColumn(name="employee_id")
+	private Employee employee;
+}
+
+Here address table maintaing foreign key
+
+Manytomany:--
+=================
+@Entity
+@Table(name="empManytMany_table")
+@DynamicUpdate
+public class Employee {
+	@ManyToMany(cascade=CascadeType.ALL,fetch=FetchType.EAGER)
+	@JoinTable(name="employee_address_table",joinColumns=@JoinColumn(name="employee_id"),inverseJoinColumns=@JoinColumn(name="address_id"))
+	private List<Address> addressList = new ArrayList<>();
+}
+
+@Entity
+@Table(name="addressMtM_table")
+public class Address {
+	@ManyToMany(mappedBy="addressList")
+	private List<Employee> employeeList = new ArrayList<>();
+}
+
+
+Nativesql:--
+To execute sql commands directly on a database using SqlQuery interface.
+
+examples:
+package com.client;
+
+import java.util.Iterator;
+import java.util.List;
+
+import org.hibernate.HibernateException;
+import org.hibernate.SQLQuery;
+import org.hibernate.Session;
+
+import com.entites.Employee;
+import com.util.HibernateUtil;
+
+public class ClientTest {
+
+	public static void main(String[] args) {
+		try(Session session = HibernateUtil.getSessionFactory().openSession()) {
+			
+			session.beginTransaction();
+			
+			/*Employee emp = new Employee();
+			emp.setEname("Raju");
+			emp.setSalary(40000);
+			session.persist(emp);*/
+			
+			
+			//fetching data
+			
+			/*String query ="select * from employee";
+			SQLQuery sqlquery = session.createSQLQuery(query);
+			sqlquery.addEntity(Employee.class);
+			List list = sqlquery.list();
+			
+			Iterator it = list.iterator();
+			while(it.hasNext()) {
+				Employee emp =  (Employee) it.next();
+				System.out.println(emp.getEmpId()+" "+emp.getEname()+" "+emp.getSalary());
+			}*/
+			
+			//update to employee table
+			
+			String query = "update employee set ename=:ename,salary=:salary where empId=:empId";
+			SQLQuery sqlquery = session.createSQLQuery(query);
+			sqlquery.setParameter("empId",1);
+			sqlquery.setParameter("ename","Raju");
+			sqlquery.setParameter("salary",15000.00);
+			sqlquery.executeUpdate();
+			System.out.println("Successfully updated.");
+			session.getTransaction().commit();
+			
+		
+		}catch (HibernateException e) {
+			e.printStackTrace();
+		}
+	
+	}
+	
+}
+===================================================================================================================
+1. Simple create and insert the data
+Bean class:
+--------------------
+package com.entites;
+
+public class Employee {
+        private int empId;
+	private String ename;
+	private double salary;
+	
+	public int getEmpId() {
+		return empId;
+	}
+	public void setEmpId(int empId) {
+		this.empId = empId;
+	}
+	public String getEname() {
+		return ename;
+	}
+	public void setEname(String ename) {
+		this.ename = ename;
+	}
+	public double getSalary() {
+		return salary;
+	}
+	public void setSalary(double salary) {
+		this.salary = salary;
+	}
+	
+	@Override
+	public String toString() {
+		return "Employee [empId=" + empId + ", ename=" + ename + ", salary=" + salary + "]";
+	}
+}
+
+2. Main Class
+package com.client;
+
+import java.util.Iterator;
+import java.util.List;
+import org.hibernate.HibernateException;
+import org.hibernate.SQLQuery;
+import org.hibernate.Session;
+import com.entites.Employee;
+import com.util.HibernateUtil;
+
+public class ClientTest {
+	public static void main(String[] args) {
+		try(Session session = HibernateUtil.getSessionFactory().openSession()) {
+			session.beginTransaction();
+			Employee emp = new Employee();
+			emp.setEname("Raju");
+			emp.setSalary(40000);
+			session.persist(emp);
+			session.getTransaction().commit();
+			
+			//fetching data
+			
+			/*String query ="select * from employee";
+			SQLQuery sqlquery = session.createSQLQuery(query);
+			sqlquery.addEntity(Employee.class);
+			List list = sqlquery.list();
+			
+			Iterator it = list.iterator();
+			while(it.hasNext()) {
+				Employee emp =  (Employee) it.next();
+				System.out.println(emp.getEmpId()+" "+emp.getEname()+" "+emp.getSalary());
+			}*/
+			
+			//update to employee table
+			
+			/*String query = "update employee set ename=:ename,salary=:salary where empId=:empId";
+			SQLQuery sqlquery = session.createSQLQuery(query);
+			sqlquery.setParameter("empId",1);
+			sqlquery.setParameter("ename","Raju");
+			sqlquery.setParameter("salary",15000.00);
+			sqlquery.executeUpdate();
+			System.out.println("Successfully updated.");
+			session.getTransaction().commit();*/
+			
+		
+		}catch (HibernateException e) {
+			e.printStackTrace();
+		}
+	}
+}
+
+3. mapping file
+<?xml version="1.0" encoding="UTF-8"?>
+<hibernate-mapping>
+<class name="com.entites.Employee" table="employee">
+<id name="empId" column="empId">
+   <generator class="identity"></generator>
+</id>
+<property name="ename" column="ename"/>
+<property name="salary" column="salary"/>
+</class>
+</hibernate-mapping>
+
+4. hibernatecfg file.
+
+<?xml version='1.0' encoding='utf-8'?>
+<!DOCTYPE hibernate-configuration SYSTEM
+"hibernate-configuration-3.0.dtd">
+<hibernate-configuration>
+	<session-factory>
+		<property name="hibernate.connection.driver_class">com.mysql.jdbc.Driver</property>
+		<property name="hibernate.connection.url">jdbc:mysql://localhost:3306/hibdb</property>
+		<property name="hibernate.connection.username">root</property>
+		<property name="hibernate.connection.password">Muthu</property>
+		<property name="hibernate.dialect">org.hibernate.dialect.MySQL5Dialect</property>
+		<property name="hibernate.show_sql">true</property>
+		<property name="hibernate.format_sql">true</property>
+		<property name="hibernate.hbm2ddl.auto">update</property>
+
+<!-- 		<mapping resource="manytomany/student.hbm.xml"/> -->
+<!-- 		<mapping resource="manytomany/course.hbm.xml"/> -->
+
+<mapping resource="com/employee.hbm.xml"/>
+
+	</session-factory>
+</hibernate-configuration>
+
+                -------------------------------------------------
+
+Relationships:---
+OnetoOne:---
+------------------------
+*. In OnetoOne mapping one object is associated with one object only.
+*. To apply one to one relationship between two pojo class objects it is possible by without taking a seperate foreign key
+   coloumn  in the child table of the database.
+*. To apply onetoone relationship ,we copy the primary key value of parent object into the primarykey value of the child object
+   so that the relationship between two objects is one to one.
+*. If we want to copy parent object primarykey value into child object primarykey. we need to use a special generator class given
+   by hibernate called foreign.
+*. Actually this foreign generator is only used in one to one relationship only
+
+cascade:---
+-----------    Cascade attribute is mandatory, whenever we apply relationship between objects,
+2. Cascade attribute transfers operations done on one object onto its related child objects.
+3. If we write cascade='all' then changes at parent class object will be effected to child class object too, 
+   if we write cascade='all' then all operations like insert,delete,update at parent object will be effected to child object also.
+4. Default value of cascade=none means no operations will be transfers to the child class.    
+
+1. Beans
+package onetoone.entites;
+
+public class Employee {
+
+	
+	private int employeeId;
+	private String name;
+	private EmployeeDetail employeeDetail;
+	
+	public int getEmployeeId() {
+		return employeeId;
+	}
+	public void setEmployeeId(int employeeId) {
+		this.employeeId = employeeId;
+	}
+	public String getName() {
+		return name;
+	}
+	public void setName(String name) {
+		this.name = name;
+	}
+	public EmployeeDetail getEmployeeDetail() {
+		return employeeDetail;
+	}
+	public void setEmployeeDetail(EmployeeDetail employeeDetail) {
+		this.employeeDetail = employeeDetail;
+	}
+	@Override
+	public String toString() {
+		return "Employee [employeeId=" + employeeId + ", name=" + name + ", employeeDetail=" + employeeDetail + "]";
+	}
+}
+2. Bean
+package onetoone.entites;
+
+public class EmployeeDetail {
+	private int employeeId;
+	private String city;
+	private Employee employee;
+	
+	public int getEmployeeId() {
+		return employeeId;
+	}
+	public void setEmployeeId(int employeeId) {
+		this.employeeId = employeeId;
+	}
+	public String getCity() {
+		return city;
+	}
+	public void setCity(String city) {
+		this.city = city;
+	}
+	public Employee getEmployee() {
+		return employee;
+	}
+	public void setEmployee(Employee employee) {
+		this.employee = employee;
+	}
+	@Override
+	public String toString() {
+		return "EmployeeDetail [employeeId=" + employeeId + ", city=" + city + ", employee=" + employee + "]";
+	}
+}
+3. employee.hbm.xml
+<?xml version="1.0" encoding="UTF-8"?>
+<hibernate-mapping>
+<class name="onetoone.entites.Employee" table="employee">
+<id name="employeeId" column="EMPLOYEE_ID">
+   <generator class="identity"></generator>
+</id>
+<property name="name" column="name"/>
+<one-to-one name="employeeDetail" class="onetoone.entites.EmployeeDetail" cascade="all"></one-to-one>
+</class>
+</hibernate-mapping>
+4. employeedetail.hbm.xml
+<?xml version="1.0" encoding="UTF-8"?>
+<hibernate-mapping>
+<class name="onetoone.entites.EmployeeDetail" table="EmployeeDetails">
+<id name="employeeId" column="EMPLOYEE_ID">
+   <generator class="foreign">
+   <param name="property">employee</param>
+   </generator>
+</id>
+<property name="city" column="city"/>
+<one-to-one name="employee" class="onetoone.entites.Employee" constrained="true"></one-to-one>
+</class>
+</hibernate-mapping>
+5.hibernate.cfg.xml
+<?xml version='1.0' encoding='utf-8'?>
+<!DOCTYPE hibernate-configuration SYSTEM
+"hibernate-configuration-3.0.dtd">
+<hibernate-configuration>
+	<session-factory>
+		<property name="hibernate.connection.driver_class">com.mysql.jdbc.Driver</property>
+		<property name="hibernate.connection.url">jdbc:mysql://localhost:3306/hibdb</property>
+		<property name="hibernate.connection.username">root</property>
+		<property name="hibernate.connection.password">Muthu</property>
+		<property name="hibernate.dialect">org.hibernate.dialect.MySQL5Dialect</property>
+		<property name="hibernate.show_sql">true</property>
+		<property name="hibernate.format_sql">true</property>
+		<property name="hibernate.hbm2ddl.auto">update</property>
+
+<!-- 		<mapping resource="manytomany/student.hbm.xml"/> -->
+<!-- 		<mapping resource="manytomany/course.hbm.xml"/> -->
+
+<mapping resource="onetoone/employee.hbm.xml"/>
+<mapping resource="onetoone/employeedetail.hbm.xml"/>
+	</session-factory>
+</hibernate-configuration>
+
+6. Main class
+package onetoone.client;
+
+import java.util.Iterator;
+import java.util.List;
+import org.hibernate.HibernateException;
+import org.hibernate.Session;
+import com.util.HibernateUtil;
+import onetoone.entites.Employee;
+import onetoone.entites.EmployeeDetail;
+
+public class ClientTest {
+	public static void main(String[] args) {
+		try(Session session = HibernateUtil.getSessionFactory().openSession()) {
+			session.beginTransaction();
+			Employee emp = new Employee();
+			emp.setEmployeeId(101);
+			emp.setName("muthu");
+			
+			EmployeeDetail empde = new EmployeeDetail();
+			empde.setCity("Bangalore");
+			empde.setEmployee(emp);
+			emp.setEmployeeDetail(empde);
+			
+			session.save(emp);
+			session.getTransaction().commit();
+		  }catch (HibernateException e) {
+			e.printStackTrace();
+		}
+	}
+}
+
+		---------------------------onetomany-----------------------------------
+
+
+
+		
+    

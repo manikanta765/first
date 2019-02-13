@@ -1,0 +1,194 @@
+Angular:--
+--------------
+Angular is a data binding framework and client side framework, which is used to create databindings in webpages.
+Client side java script framework.
+organize the client side code.
+Angular is template based framework, it means everything maintaing the client side html code
+Template contains html,image,anchor,description, its a common layout.
+Partial page updates
+Angular is working based on Typescript, Typescript means type features and oops.
+
+template --- Commonlayout + {{}} --> JSON --> Server --> DB
+component = Controller + template 
+component will provide view 
+
+Angular 5 
+HttpClient
+pipes
+
+directives in angular 5
+required
+minlength
+maxlength
+html5
+
+
+
+component  -- > view
+service    -->    data fetching logic,storing logic
+pipes      -->    formatting    
+directives  -- >   extend the html
+
+modules
+
+
+
+
+Development Environment
+
+Node
+NPM (Node Package Manager)
+Angular CLI
+Text Editor - Vs Code
+
+ng new Hello-World
+cd Hello-World
+ng serve
+
+Component:-- This Contains 3 types
+1. Template this contains view,html
+2. Class this contains code,typescript,data&methods to controll the template
+3. Metadata : this contains information decorator 
+
+why angular 2:
+1. Better Performance
+2. Supports mobile applications.
+3. Provides new web terminologies.
+4. Easy to implement
+5. Improved dependency injection.
+6. Flexible routing.
+
+Building blocks:
+1. Component
+2. Modules
+3. Templates
+4. Metadata
+5. Services
+
+<div style="text-align:center">
+<button [disabled]='Btndisabled'>Click Me</button>
+
+  <a [routerLink]="['/']">Home</a>
+  <a [routerLink]="['/Aboutus']">About us</a>
+</div>
+
+<div>
+  <router-outlet>
+
+  </router-outlet>
+</div>
+
+
+ title = 'app';
+
+ways for accessing the properties from component to template :
+1.  property binder ---- <tag  [attr]='propertyname' />
+2.  interpolation   ---- {{}}
+when to use interpolation ?
+plain string format.
+
+one way binding : - 
+ngModel - angular attribute 
+<input type="text" [value]="Message"/><br/> ---- property binder
+{{Message}} ---- interpolation
+
+two way binding :-- 
+1. ngModel while using this ngModel import {FormsModule} from '@angular/forms'; and add FormsModule in imports
+2. $event.target.value
+<input type="text" [(ngModel)]="Message"/><br/>
+<input type="text" (input)='Message=$event.target.value'/><br/>
+
+ex:  component class
+import { Component } from '@angular/core';
+@Component({
+  selector: 'app-root',
+  templateUrl: './app.component.html',
+  styleUrls: ['./app.component.css']
+})
+export class AppComponent {
+  Btndisabled : boolean = true;
+  something : String ="Hi , How are you";
+  Message : String="Hi,welcome you ,,,.";
+}
+
+2. app.module.ts
+import {FormsModule} from '@angular/forms';
+
+@NgModule({
+  declarations: [
+    AppComponent
+  ],
+  imports: [
+    BrowserModule,FormsModule
+  ],
+  providers: [],
+  bootstrap: [AppComponent]
+})
+export class AppModule { }
+ 
+input variables:--@Input() varname : datatype;
+
+common variables:- varname : datatype = value;
+
+Name : {{Product}} <br/>
+   About : {{Productdescription}} <br/>
+   Price : {{Productcost}}/- <br/>
+   <child [Allreviews]='Productreviews'>
+
+   </child>
+
+
+@output variables: --
+
+
+directives:--
+*ngFor :-- 
+It is a Structural directive
+We can create and destroy on DOM
+It will create an element automatically
+ngFor we have inbuilt index
+
+Syntax:
+<tag *ngFor="let x of collection/array/data"></tag>
+
+examples: 
+1. component.html
+<div style="text-align:center">
+   
+   <table border="1">
+    <thead>
+      <td>S.No</td>
+      <td>empname</td>
+      <td>deptname</td>
+    </thead>
+    <tbody>
+      <tr *ngFor ='let x of Employees;let i=index'>
+        <td>{{i}}</td>
+        <td>{{x.empname}}</td>
+        <td>{{x.deptname}}</td>
+      </tr>
+    </tbody>
+   </table>
+</div>
+2. component.ts
+import { Component } from '@angular/core';
+@Component({
+  selector: 'app-root',
+  templateUrl: './app.component.html',
+  styleUrls: ['./app.component.css']
+})
+export class AppComponent {
+  title = 'app';
+  Employees =  [
+                {empname:'muthu',deptname:'Developer'},
+                {empname:'muthu',deptname:'Developer'},
+                {empname:'muthu',deptname:'Developer'},
+                {empname:'muthu',deptname:'Developer'},
+                {empname:'muthu',deptname:'Developer'},
+                {empname:'muthu',deptname:'Developer'},
+                {empname:'muthu',deptname:'Developer'}
+                ]
+}
+
+
+
